@@ -9,7 +9,6 @@ exports.handler = async (event) => {
     'Content-Type': 'application/json',
   };
 
-  // Handle CORS preflight
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers, body: '' };
   }
@@ -18,23 +17,28 @@ exports.handler = async (event) => {
     return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method Not Allowed' }) };
   }
 
-  // Check API key exists
-  if (!process.env.ANTHROPIC_API_KEY) {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  console.log('API key present:', !!apiKey);
+  console.log('API key prefix:', apiKey ? apiKey.substring(0, 10) : 'MISSING');
+
+  if (!apiKey) {
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ error: 'ANTHROPIC_API_KEY not set in environment variables' }),
+      body: JSON.stringify({ error: 'ANTHROPIC_API_KEY not set' }),
     };
   }
 
   try {
     const body = JSON.parse(event.body);
+    console.log('Request model:', body.model);
+    console.log('Messages count:', body.messages?.length);
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'x-api-key': apiKey,
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
@@ -45,10 +49,11 @@ exports.handler = async (event) => {
       }),
     });
 
+    console.log('Anthropic response status:', response.status);
     const data = await response.json();
+    console.log('Anthropic response:', JSON.stringify(data).substring(0, 200));
 
     if (!response.ok) {
-      console.error('Anthropic API error:', data);
       return {
         statusCode: response.status,
         headers,
@@ -59,11 +64,11 @@ exports.handler = async (event) => {
     return { statusCode: 200, headers, body: JSON.stringify(data) };
 
   } catch (err) {
-    console.error('Function error:', err);
+    console.error('Function error:', err.message);
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ error: 'Internal server error', detail: err.message }),
+      body: JSON.stringify({ error: err.message }),
     };
   }
 };
