@@ -1,0 +1,1812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WeddingPay — Give Forward</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --gold:#C9A84C;--gold-light:#E8D5A3;--gold-pale:#FDF8EE;
+  --deep:#0E0B08;--warm:#3D2B1F;--cream:#FAF7F2;
+  --muted:#9B8B7A;--border:rgba(201,168,76,0.18);
+  --teal:#2E6B5E;--teal-light:#7ecbb8;
+  --dim:rgba(255,255,255,0.38);--mid:rgba(255,255,255,0.62);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'DM Sans',sans-serif;background:var(--deep);color:white;overflow-x:hidden;cursor:none;}
+
+
+/* ── CHAT ONBOARDING ── */
+.ob-track-item{display:flex;align-items:flex-start;gap:11px;padding:8px 10px;border-radius:8px;transition:background 0.3s;}
+.ob-track-item.active{background:rgba(255,255,255,0.04);}
+.ob-track-dot{width:20px;height:20px;border-radius:50%;flex-shrink:0;border:2px solid rgba(255,255,255,0.12);background:transparent;display:flex;align-items:center;justify-content:center;font-size:9px;transition:all 0.3s;margin-top:2px;}
+.ob-track-dot.done{background:var(--success);border-color:var(--success);color:white;}
+.ob-track-dot.done::after{content:'✓';}
+.ob-track-dot.active{background:var(--gold);border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,0.2);}
+.ob-track-conn{width:1.5px;height:14px;background:rgba(255,255,255,0.07);margin-left:19px;}
+.ob-track-info{flex:1;}
+.ob-track-label{font-size:11px;color:rgba(255,255,255,0.35);font-weight:500;}
+.ob-track-val{font-size:10px;color:rgba(255,255,255,0.2);margin-top:2px;transition:color 0.3s;}
+.ob-track-item.done .ob-track-label{color:rgba(255,255,255,0.6);}
+.ob-track-item.done .ob-track-val{color:var(--teal-light);}
+.ob-msg{display:flex;gap:10px;animation:msgIn 0.3s ease both;}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.ob-msg.user{flex-direction:row-reverse;}
+.ob-msg-av{width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;}
+.ob-msg.ai .ob-msg-av{background:linear-gradient(135deg,var(--gold),#B8923E);}
+.ob-msg.user .ob-msg-av{background:rgba(255,255,255,0.1);font-size:10px;color:rgba(255,255,255,0.5);}
+.ob-msg-bubble{max-width:72%;padding:11px 15px;border-radius:16px;font-size:13px;line-height:1.6;}
+.ob-msg.ai .ob-msg-bubble{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.09);color:rgba(255,255,255,0.82);border-top-left-radius:4px;}
+.ob-msg.user .ob-msg-bubble{background:var(--gold);color:white;border-top-right-radius:4px;}
+.typing-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.4);animation:typingPulse 1.2s ease-in-out infinite;}
+@keyframes typingPulse{0%,60%,100%{transform:translateY(0);opacity:0.4}30%{transform:translateY(-4px);opacity:1}}
+
+/* ── COUPLE SILHOUETTE ── */
+.couple-visual{
+  position:relative;z-index:2;margin-bottom:28px;
+  display:flex;align-items:center;justify-content:center;
+}
+.couple-frame{
+  width:148px;height:148px;border-radius:50%;position:relative;
+  background:linear-gradient(155deg,#2a1f15 0%,#1a1208 40%,#0d1a14 100%);
+  border:1.5px solid rgba(201,168,76,0.35);
+  box-shadow:0 0 0 6px rgba(201,168,76,0.07),0 0 0 14px rgba(201,168,76,0.04),0 24px 60px rgba(0,0,0,0.6);
+  overflow:hidden;display:flex;align-items:flex-end;justify-content:center;
+}
+/* Vignette overlay */
+.couple-frame::after{
+  content:'';position:absolute;inset:0;border-radius:50%;
+  background:radial-gradient(ellipse at center,transparent 38%,rgba(14,11,8,0.55) 70%,rgba(14,11,8,0.88) 100%);
+  z-index:2;
+}
+/* Groom silhouette */
+.sil-groom{
+  position:absolute;bottom:0;left:50%;
+  transform:translateX(-72%);
+  width:52px;height:96px;z-index:1;
+}
+.sil-groom-body{
+  position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+  width:32px;height:70px;
+  background:linear-gradient(180deg,#3a2a1a,#2a1a0a);
+  border-radius:6px 6px 0 0;
+}
+.sil-groom-head{
+  position:absolute;bottom:64px;left:50%;transform:translateX(-50%);
+  width:22px;height:26px;border-radius:50%;
+  background:#4a3525;
+}
+.sil-groom-sherwani{
+  position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+  width:40px;height:52px;
+  background:linear-gradient(180deg,#2a1f12,#1a120a);
+  border-radius:4px 4px 0 0;clip-path:polygon(10% 0,90% 0,100% 100%,0 100%);
+}
+/* Bride silhouette */
+.sil-bride{
+  position:absolute;bottom:0;right:50%;
+  transform:translateX(72%);
+  width:52px;height:104px;z-index:1;
+}
+.sil-bride-lehenga{
+  position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+  width:54px;height:72px;
+  background:linear-gradient(180deg,#3d2820,#2a1810);
+  clip-path:polygon(20% 0,80% 0,100% 100%,0 100%);
+}
+.sil-bride-body{
+  position:absolute;bottom:68px;left:50%;transform:translateX(-50%);
+  width:24px;height:30px;
+  background:linear-gradient(180deg,#4a3025,#3a2015);
+  border-radius:4px;
+}
+.sil-bride-head{
+  position:absolute;bottom:94px;left:50%;transform:translateX(-50%);
+  width:20px;height:24px;border-radius:50%;
+  background:#5a3d2a;
+}
+.sil-bride-veil{
+  position:absolute;bottom:80px;right:6px;
+  width:20px;height:40px;
+  background:linear-gradient(180deg,rgba(201,168,76,0.35),transparent);
+  border-radius:0 12px 12px 0;transform:skewX(-6deg);
+}
+/* Gold ring glow between them */
+.sil-rings{
+  position:absolute;bottom:18px;left:50%;transform:translateX(-50%);
+  z-index:3;font-size:13px;
+  text-shadow:0 0 12px rgba(201,168,76,0.8);
+}
+/* Ambient glow behind couple */
+.couple-glow{
+  position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+  width:90px;height:60px;
+  background:radial-gradient(ellipse,rgba(201,168,76,0.14) 0%,transparent 70%);
+  z-index:0;border-radius:50%;
+}
+/* Date ribbon */
+.couple-date{
+  position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);
+  background:rgba(14,11,8,0.9);border:1px solid rgba(201,168,76,0.3);
+  padding:4px 14px;border-radius:20px;white-space:nowrap;
+  font-size:9px;letter-spacing:0.18em;color:var(--gold);
+  font-family:'DM Sans',sans-serif;text-transform:uppercase;
+  backdrop-filter:blur(8px);z-index:10;
+}
+/* Decorative orbit rings */
+.couple-orbit{
+  position:absolute;border-radius:50%;border:1px solid rgba(201,168,76,0.12);
+  animation:orbitPulse 4s ease-in-out infinite;
+}
+.couple-orbit-1{width:172px;height:172px;top:50%;left:50%;transform:translate(-50%,-50%);animation-delay:0s;}
+.couple-orbit-2{width:200px;height:200px;top:50%;left:50%;transform:translate(-50%,-50%);animation-delay:1s;border-color:rgba(201,168,76,0.07);}
+@keyframes orbitPulse{0%,100%{opacity:0.5;transform:translate(-50%,-50%) scale(1)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.02)}}
+
+
+/* ══════════════════════════════════════
+   CAROUSEL HERO
+══════════════════════════════════════ */
+.carousel{position:absolute;inset:0;z-index:0;}
+.cs-slide{position:absolute;inset:0;opacity:0;transition:opacity 1.2s cubic-bezier(0.4,0,0.2,1);pointer-events:none;}
+.cs-slide.active{opacity:1;pointer-events:all;}
+.cs-img{
+  position:absolute;inset:0;
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+  transform:scale(1.04);
+  transition:transform 6s ease-out;
+  filter:brightness(0.55);
+}
+.cs-slide.active .cs-img{transform:scale(1);}
+.cs-overlay{
+  position:absolute;inset:0;
+  background:linear-gradient(
+    to bottom,
+    rgba(0,0,0,0.15) 0%,
+    rgba(0,0,0,0.05) 30%,
+    rgba(0,0,0,0.4) 70%,
+    rgba(0,0,0,0.75) 100%
+  );
+}
+/* Vibe badge — bottom left of each slide */
+.cs-vibe-badge{
+  position:absolute;bottom:110px;left:52px;
+  font-size:11px;letter-spacing:0.18em;text-transform:uppercase;
+  color:rgba(255,255,255,0.7);
+  background:rgba(0,0,0,0.3);
+  border:1px solid rgba(255,255,255,0.2);
+  backdrop-filter:blur(8px);
+  padding:6px 14px;border-radius:20px;
+  opacity:0;transform:translateY(8px);
+  transition:all 0.6s ease 0.8s;
+  z-index:3;
+}
+.cs-slide.active .cs-vibe-badge{opacity:1;transform:translateY(0);}
+
+/* Hero content sits above carousel */
+.hero-content-overlay{
+  position:relative;z-index:10;
+  display:flex;flex-direction:column;
+  align-items:center;text-align:center;
+  padding:180px 24px 120px;
+  min-height:100vh;
+  justify-content:center;
+}
+
+/* Dots */
+.carousel-dots{
+  position:absolute;bottom:36px;left:50%;transform:translateX(-50%);
+  display:flex;gap:8px;z-index:20;
+}
+.cdot{
+  width:28px;height:3px;border-radius:2px;
+  background:rgba(255,255,255,0.3);cursor:pointer;
+  transition:all 0.3s;
+}
+.cdot.active{background:var(--gold);width:44px;}
+.cdot:hover{background:rgba(255,255,255,0.6);}
+
+/* Arrows */
+.carousel-arrow{
+  position:absolute;top:50%;transform:translateY(-50%);
+  z-index:20;background:rgba(0,0,0,0.3);
+  border:1px solid rgba(255,255,255,0.2);
+  color:white;font-size:28px;width:48px;height:48px;
+  border-radius:50%;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(8px);
+  transition:all 0.2s;line-height:1;
+  padding-bottom:2px;
+}
+.carousel-arrow:hover{background:rgba(0,0,0,0.55);border-color:rgba(255,255,255,0.5);}
+.carousel-arrow-left{left:28px;}
+.carousel-arrow-right{right:28px;}
+
+/* Progress bar */
+.carousel-progress{
+  position:absolute;bottom:0;left:0;right:0;
+  height:3px;background:rgba(255,255,255,0.1);z-index:20;
+}
+.carousel-progress-fill{
+  height:100%;background:var(--gold);width:0%;
+  transition:width 0.1s linear;
+}
+
+
+.cur{position:fixed;width:10px;height:10px;border-radius:50%;background:var(--gold);pointer-events:none;z-index:9999;transform:translate(-50%,-50%);mix-blend-mode:difference;transition:transform 0.15s;}
+.cur-ring{position:fixed;width:36px;height:36px;border-radius:50%;border:1px solid rgba(201,168,76,0.5);pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:all 0.18s ease;}
+body::before{content:'';position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0.03;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+
+/* ── NAV ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;justify-content:space-between;align-items:center;padding:22px 56px;transition:all 0.4s;}
+nav.scrolled{background:rgba(14,11,8,0.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:16px 56px;}
+.nav-logo{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--gold);}
+.nav-logo span{color:rgba(255,255,255,0.25);margin:0 6px;font-weight:300;}
+.nav-links{display:flex;gap:30px;}
+.nav-link{font-size:12px;color:var(--dim);cursor:pointer;letter-spacing:0.06em;transition:color 0.2s;text-decoration:none;}
+.nav-link:hover{color:white;}
+.nav-cta{background:var(--gold);color:white;border:none;padding:9px 20px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;box-shadow:0 2px 16px rgba(201,168,76,0.25);}
+.nav-cta:hover{background:#B8923E;transform:translateY(-1px);}
+
+/* ── HERO ── */
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:120px 24px 80px;position:relative;overflow:hidden;}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 55%,rgba(201,168,76,0.1) 0%,transparent 55%),radial-gradient(ellipse at 20% 80%,rgba(46,107,94,0.07) 0%,transparent 45%),linear-gradient(180deg,#0E0B08 0%,#1A1410 60%,#0e1a16 100%);}
+
+/* Animated grid lines */
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(201,168,76,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(201,168,76,0.04) 1px,transparent 1px);background-size:60px 60px;animation:gridShift 20s linear infinite;opacity:0.5;}
+@keyframes gridShift{0%{transform:translateY(0)}100%{transform:translateY(60px)}}
+
+/* Orbs */
+.orb{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none;animation:orbFloat 8s ease-in-out infinite;}
+.orb-1{width:500px;height:500px;background:rgba(201,168,76,0.07);top:5%;left:-5%;}
+.orb-2{width:400px;height:400px;background:rgba(46,107,94,0.08);top:30%;right:-5%;animation-delay:3s;}
+.orb-3{width:350px;height:350px;background:rgba(201,168,76,0.05);bottom:5%;left:25%;animation-delay:5s;}
+.orb-4{width:200px;height:200px;background:rgba(126,203,184,0.06);top:60%;left:10%;animation-delay:2s;}
+@keyframes orbFloat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-30px) scale(1.04)}}
+
+/* Robot floating */
+.hero-robots{font-size:56px;margin-bottom:20px;position:relative;z-index:2;display:flex;align-items:center;justify-content:center;gap:8px;}
+.robot-w{animation:wFloat 3s ease-in-out infinite;}
+.robot-e{animation:eFloat 3s ease-in-out infinite;animation-delay:1.5s;}
+.robot-plant{animation:pFloat 2.5s ease-in-out infinite;animation-delay:0.7s;font-size:28px;}
+@keyframes wFloat{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-10px) rotate(4deg)}}
+@keyframes eFloat{0%,100%{transform:translateY(0) rotate(3deg)}50%{transform:translateY(-14px) rotate(-3deg)}}
+@keyframes pFloat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-6px) scale(1.15)}}
+
+.hero-content{position:relative;z-index:2;max-width:820px;}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:10px;font-size:10px;letter-spacing:0.28em;text-transform:uppercase;color:var(--gold);margin-bottom:28px;padding:6px 18px;border:1px solid rgba(201,168,76,0.25);border-radius:20px;background:rgba(201,168,76,0.06);animation:eyebrowIn 1s ease both;}
+@keyframes eyebrowIn{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
+.hero-title{font-family:'Cormorant Garamond',serif;font-size:clamp(48px,7vw,94px);font-weight:300;line-height:1.04;letter-spacing:-0.02em;margin-bottom:10px;animation:titleIn 1.1s cubic-bezier(0.4,0,0.2,1) 0.2s both;}
+@keyframes titleIn{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+.hero-title em{font-style:italic;color:var(--gold);}
+
+/* Typewriter word swap */
+.hero-word{display:inline-block;position:relative;overflow:hidden;vertical-align:bottom;}
+.hero-word-inner{display:block;animation:wordCycle 9s ease-in-out infinite;}
+@keyframes wordCycle{0%,28%{transform:translateY(0);opacity:1}33%,61%{transform:translateY(-100%);opacity:0}0%{content:'celebrates'}33%{content:'gives'}66%{content:'remembers'}}
+
+.hero-dash{width:48px;height:1px;background:var(--gold);margin:22px auto;opacity:0.5;animation:dashIn 0.8s ease 0.6s both;}
+@keyframes dashIn{from{width:0;opacity:0}to{width:48px;opacity:0.5}}
+.hero-sub{font-size:16px;color:var(--mid);line-height:1.75;max-width:520px;margin:0 auto 40px;font-weight:300;animation:subIn 1s ease 0.8s both;}
+@keyframes subIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.hero-sub em{color:var(--gold-light);font-style:normal;}
+
+/* Hero buttons */
+.hero-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:14px;animation:btnsIn 1s ease 1s both;}
+@keyframes btnsIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.btn-primary{background:var(--gold);color:white;border:none;padding:14px 28px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.25s;box-shadow:0 4px 28px rgba(201,168,76,0.35);}
+.btn-primary:hover{background:#B8923E;transform:translateY(-2px);box-shadow:0 8px 36px rgba(201,168,76,0.45);}
+.btn-secondary{background:rgba(255,255,255,0.06);color:white;border:1px solid rgba(255,255,255,0.15);padding:14px 28px;border-radius:8px;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.25s;}
+.btn-secondary:hover{border-color:rgba(255,255,255,0.45);background:rgba(255,255,255,0.1);}
+.hero-btn-label{font-size:10px;color:var(--dim);text-align:center;letter-spacing:0.1em;margin-bottom:28px;animation:btnsIn 1s ease 1.1s both;}
+
+/* Hero stats — animated counters */
+.hero-stats{display:flex;gap:0;border:1px solid var(--border);border-radius:14px;background:rgba(255,255,255,0.02);backdrop-filter:blur(8px);overflow:hidden;animation:statsIn 1s ease 1.2s both;}
+@keyframes statsIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.hs{flex:1;padding:20px 24px;text-align:center;border-right:1px solid var(--border);position:relative;overflow:hidden;}
+.hs:last-child{border-right:none;}
+.hs::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(201,168,76,0.04),transparent);opacity:0;transition:opacity 0.3s;}
+.hs:hover::before{opacity:1;}
+.hs-val{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;color:var(--gold);display:block;}
+.hs-label{font-size:10px;color:var(--dim);letter-spacing:0.1em;text-transform:uppercase;margin-top:4px;}
+
+.scroll-hint{position:absolute;bottom:32px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;z-index:2;animation:btnsIn 1s ease 2s both;}
+.scroll-hint span{font-size:9px;color:var(--dim);letter-spacing:0.15em;text-transform:uppercase;}
+.scroll-line{width:1px;height:40px;background:linear-gradient(to bottom,var(--gold),transparent);animation:scrollPulse 2s ease-in-out infinite;}
+@keyframes scrollPulse{0%,100%{opacity:0.3;transform:scaleY(1)}50%{opacity:1;transform:scaleY(1.2)}}
+
+/* ── SHARED ── */
+section{padding:110px 56px;position:relative;}
+.s-eyebrow{font-size:10px;letter-spacing:0.24em;text-transform:uppercase;color:var(--gold);margin-bottom:14px;display:flex;align-items:center;gap:10px;}
+.s-eyebrow::before{content:'✦';font-size:8px;}
+.s-title{font-family:'Cormorant Garamond',serif;font-size:clamp(34px,4vw,54px);font-weight:300;line-height:1.12;margin-bottom:16px;}
+.s-title em{font-style:italic;color:var(--gold);}
+.s-sub{font-size:14px;color:var(--mid);line-height:1.75;max-width:520px;}
+.divider{width:100%;height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);}
+
+/* Reveal animations */
+.reveal{opacity:0;transform:translateY(36px);transition:all 0.8s cubic-bezier(0.4,0,0.2,1);}
+.reveal.visible{opacity:1;transform:translateY(0);}
+.reveal-left{opacity:0;transform:translateX(-36px);transition:all 0.8s cubic-bezier(0.4,0,0.2,1);}
+.reveal-left.visible{opacity:1;transform:translateX(0);}
+.reveal-right{opacity:0;transform:translateX(36px);transition:all 0.8s cubic-bezier(0.4,0,0.2,1);}
+.reveal-right.visible{opacity:1;transform:translateX(0);}
+.reveal-scale{opacity:0;transform:scale(0.94);transition:all 0.8s cubic-bezier(0.4,0,0.2,1);}
+.reveal-scale.visible{opacity:1;transform:scale(1);}
+.rd1{transition-delay:0.08s;}.rd2{transition-delay:0.18s;}.rd3{transition-delay:0.28s;}.rd4{transition-delay:0.38s;}
+
+/* ── CINEMATIC STATS BAR ── */
+.stats-bar{
+  background:linear-gradient(90deg,rgba(201,168,76,0.06),rgba(201,168,76,0.02),rgba(46,107,94,0.06));
+  border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+  padding:40px 56px;display:flex;gap:0;overflow:hidden;position:relative;
+}
+.stats-bar::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(201,168,76,0.04) 0%,transparent 70%);}
+.sb-item{flex:1;text-align:center;border-right:1px solid var(--border);padding:0 24px;position:relative;z-index:1;}
+.sb-item:last-child{border-right:none;}
+.sb-val{font-family:'Cormorant Garamond',serif;font-size:52px;font-weight:300;color:var(--gold);display:block;line-height:1;}
+.sb-label{font-size:11px;color:var(--dim);letter-spacing:0.12em;text-transform:uppercase;margin-top:6px;}
+.sb-sub{font-size:10px;color:rgba(255,255,255,0.2);margin-top:3px;}
+
+/* ── STORY ── */
+#story{background:linear-gradient(180deg,#0E0B08,#12100d);}
+.story-layout{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;margin-top:64px;}
+.story-visual{background:linear-gradient(160deg,#0d1a0a 0%,#1a3010 40%,#2a4a1a 70%,#3a6a2a 100%);border-radius:20px;padding:44px;text-align:center;border:1px solid rgba(58,106,42,0.3);box-shadow:0 24px 60px rgba(0,0,0,0.4);position:relative;overflow:hidden;}
+.story-visual::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 30%,rgba(90,180,50,0.12) 0%,transparent 55%);}
+.story-robots{position:relative;z-index:1;margin-bottom:20px;display:flex;align-items:center;justify-content:center;gap:6px;}
+.sv-wall{font-size:68px;animation:wFloat 3s ease-in-out infinite;}
+.sv-eva{font-size:60px;animation:eFloat 3s ease-in-out infinite;animation-delay:1.5s;}
+.sv-plant{font-size:32px;animation:pFloat 2.5s ease-in-out infinite;animation-delay:0.7s;}
+.story-visual-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-style:italic;color:white;position:relative;z-index:1;}
+.story-visual-sub{font-size:10px;color:rgba(255,255,255,0.35);margin-top:5px;position:relative;z-index:1;letter-spacing:0.1em;text-transform:uppercase;}
+.story-quote{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;font-style:italic;color:white;line-height:1.4;margin-bottom:22px;}
+.story-quote em{color:var(--gold);}
+.story-body{font-size:14px;color:var(--mid);line-height:1.8;margin-bottom:24px;}
+.story-tags{display:flex;gap:8px;flex-wrap:wrap;}
+.story-tag{font-size:10px;padding:4px 12px;border-radius:12px;border:1px solid rgba(255,255,255,0.1);color:var(--dim);background:rgba(255,255,255,0.03);}
+.story-tag.gold{border-color:rgba(201,168,76,0.25);color:var(--gold);background:rgba(201,168,76,0.06);}
+.story-tag.green{border-color:rgba(58,106,42,0.4);color:#90d060;background:rgba(58,106,42,0.1);}
+
+/* ── FEATURES — 3 modules ── */
+#features{background:linear-gradient(180deg,#12100d,#0E0B08);}
+.features-tabs{display:flex;gap:0;margin:52px 0 28px;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:rgba(255,255,255,0.02);}
+.f-tab{flex:1;padding:16px 18px;cursor:pointer;transition:all 0.3s;text-align:center;border-right:1px solid var(--border);position:relative;overflow:hidden;}
+.f-tab::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--gold);transform:scaleX(0);transition:transform 0.3s;}
+.f-tab.active::after{transform:scaleX(1);}
+.f-tab:last-child{border-right:none;}
+.f-tab:hover{background:rgba(255,255,255,0.04);}
+.f-tab.active{background:rgba(201,168,76,0.06);}
+.f-tab-icon{font-size:20px;margin-bottom:6px;transition:transform 0.3s;}
+.f-tab:hover .f-tab-icon{transform:scale(1.1);}
+.f-tab-label{font-size:11px;color:var(--dim);transition:color 0.2s;}
+.f-tab.active .f-tab-label{color:var(--gold);}
+.module-panels{position:relative;}
+.module-panel{display:none;}
+.module-panel.active{display:grid;grid-template-columns:1fr 1.3fr;gap:52px;align-items:start;animation:panelIn 0.45s cubic-bezier(0.4,0,0.2,1) both;}
+@keyframes panelIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+.module-num{font-size:10px;color:var(--gold);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:10px;}
+.module-title{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:600;color:white;margin-bottom:14px;}
+.module-desc{font-size:14px;color:var(--mid);line-height:1.75;margin-bottom:22px;}
+.module-features{display:flex;flex-direction:column;gap:10px;}
+.mf-item{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--dim);}
+.mf-item::before{content:'✓';color:var(--gold);flex-shrink:0;font-size:12px;margin-top:2px;}
+.mini-dash{background:#1A1410;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);box-shadow:0 24px 60px rgba(0,0,0,0.5);}
+.mini-bar{height:34px;background:linear-gradient(90deg,#0E0B08,#1A1410);display:flex;align-items:center;padding:0 14px;gap:7px;border-bottom:1px solid rgba(255,255,255,0.06);}
+.md{width:7px;height:7px;border-radius:50%;}
+.mini-bar-title{font-size:10px;color:rgba(255,255,255,0.3);margin-left:7px;font-family:'DM Sans',sans-serif;}
+.mini-body{padding:14px;}
+/* registry mini */
+.rp-stats{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:11px;}
+.rp-stat{background:rgba(255,255,255,0.04);border-radius:7px;padding:9px 11px;border:1px solid rgba(255,255,255,0.06);}
+.rp-sl{font-size:8px;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.08em;font-family:'DM Sans',sans-serif;}
+.rp-sv{font-family:'Cormorant Garamond',serif;font-size:19px;color:var(--gold);margin-top:2px;}
+.rp-cats{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.rp-cat{background:rgba(255,255,255,0.03);border-radius:6px;padding:9px;border:1px solid rgba(255,255,255,0.06);}
+.rp-ct{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;}
+.rp-cn{font-size:8px;color:rgba(255,255,255,0.45);font-family:'DM Sans',sans-serif;}
+.rp-bar{height:3px;background:rgba(255,255,255,0.08);border-radius:2px;}
+.rp-fill{height:100%;background:var(--gold);border-radius:2px;}
+.rp-amts{display:flex;justify-content:space-between;font-size:7px;margin-top:3px;font-family:'DM Sans',sans-serif;}
+.rp-raised{color:#5C8C6A;}.rp-target{color:rgba(255,255,255,0.2);}
+/* notif mini */
+.notif-schedule{display:flex;flex-direction:column;gap:5px;margin-bottom:11px;}
+.ns-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(255,255,255,0.03);border-radius:6px;border:1px solid rgba(255,255,255,0.06);}
+.ns-icon{font-size:13px;flex-shrink:0;}
+.ns-info{flex:1;}
+.ns-title{font-size:9px;color:rgba(255,255,255,0.7);font-family:'DM Sans',sans-serif;}
+.ns-time{font-size:8px;color:rgba(255,255,255,0.28);font-family:'DM Sans',sans-serif;}
+.ns-tog{width:22px;height:12px;border-radius:6px;background:var(--gold);position:relative;flex-shrink:0;}
+.ns-tog::after{content:'';position:absolute;width:10px;height:10px;background:white;border-radius:50%;top:1px;right:1px;}
+.ns-tog.off{background:rgba(255,255,255,0.1);}
+.ns-tog.off::after{left:1px;right:auto;}
+.ns-sent-badge{font-size:7px;color:var(--teal-light);background:rgba(46,107,94,0.2);padding:2px 7px;border-radius:8px;border:1px solid rgba(46,107,94,0.25);}
+/* scrapbook mini */
+.sb-mosaic-mini{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:12px;}
+.sb-tile{border-radius:7px;overflow:hidden;aspect-ratio:1;}
+.sb-tile-photo{display:flex;align-items:center;justify-content:center;font-size:22px;}
+.sb-tile-blessing{padding:8px;display:flex;flex-direction:column;justify-content:space-between;}
+.sb-tile-blessing-t{font-size:7px;line-height:1.5;font-style:italic;font-family:'DM Sans',sans-serif;}
+.sb-tile-blessing-g{font-size:6px;margin-top:3px;opacity:0.4;font-family:'DM Sans',sans-serif;}
+.sb-tile-voice{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;}
+.sb-wave{display:flex;align-items:center;gap:1px;}
+.sb-wave-bar{width:2px;border-radius:1px;background:rgba(255,255,255,0.35);}
+
+/* ── THEMES ── */
+#themes{background:linear-gradient(180deg,#0E0B08,#12100d);}
+.theme-switcher{display:flex;gap:0;margin-bottom:36px;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:rgba(255,255,255,0.02);}
+.th-tab{flex:1;padding:16px 12px;cursor:pointer;transition:all 0.3s;text-align:center;border-right:1px solid var(--border);position:relative;overflow:hidden;}
+.th-tab::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity 0.3s;}
+.th-tab.active::before{opacity:1;}
+.th-tab:last-child{border-right:none;}
+.th-tab-icon{font-size:22px;margin-bottom:6px;display:block;transition:transform 0.3s;}
+.th-tab:hover .th-tab-icon{transform:scale(1.15) rotate(-5deg);}
+.th-tab-name{font-size:12px;font-weight:500;transition:color 0.3s;}
+.th-tab-sub{font-size:9px;color:var(--dim);margin-top:2px;}
+.theme-panels{position:relative;}
+.theme-panel{display:none;}
+.theme-panel.active{display:grid;grid-template-columns:1fr 1fr;gap:36px;animation:panelIn 0.5s ease both;}
+.theme-preview{border-radius:16px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.5);}
+.tp-hero{height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;position:relative;overflow:hidden;}
+.tp-orn{font-size:9px;letter-spacing:0.22em;text-transform:uppercase;margin-bottom:12px;opacity:0.7;}
+.tp-names{font-family:'Cormorant Garamond',serif;font-size:28px;font-style:italic;line-height:1.1;}
+.tp-date{font-size:9px;letter-spacing:0.14em;text-transform:uppercase;margin-top:8px;opacity:0.55;}
+.tp-body{padding:16px 18px;}
+.tp-reg-row{display:flex;gap:7px;margin-bottom:10px;}
+.tp-ri{flex:1;border-radius:8px;padding:10px 8px;text-align:center;}
+.tp-ri-e{font-size:18px;margin-bottom:4px;}
+.tp-ri-n{font-size:8px;font-weight:500;margin-bottom:4px;}
+.tp-ri-bar{height:3px;border-radius:2px;margin-bottom:2px;}
+.tp-ri-f{height:100%;border-radius:2px;}
+.tp-ri-a{font-size:8px;font-family:'Cormorant Garamond',serif;}
+.theme-info{display:flex;flex-direction:column;justify-content:center;}
+.ti-label{font-size:9px;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:12px;opacity:0.5;}
+.ti-title{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:300;line-height:1.15;margin-bottom:14px;}
+.ti-desc{font-size:13px;line-height:1.75;margin-bottom:18px;opacity:0.6;}
+.ti-palette{display:flex;gap:8px;margin-bottom:18px;}
+.ti-sw{width:26px;height:26px;border-radius:50%;border:2px solid rgba(255,255,255,0.1);}
+.ti-features{display:flex;flex-direction:column;gap:8px;}
+.ti-f{display:flex;align-items:center;gap:10px;font-size:12px;opacity:0.6;}
+.ti-f::before{content:'✦';font-size:8px;opacity:0.7;flex-shrink:0;}
+.ti-gc-strip{display:flex;gap:7px;margin-top:16px;flex-wrap:wrap;}
+.ti-gc{font-size:10px;padding:4px 11px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);}
+
+/* ── NOTIFICATION CENTRAL ── */
+#notifications{background:linear-gradient(180deg,#12100d,#0a1f19);}
+.notif-layout{display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:center;margin-top:64px;}
+.notif-visual{position:relative;}
+.notif-phone{background:linear-gradient(160deg,#0E0B08,#1A1410);border-radius:32px;padding:32px 20px;border:2px solid rgba(255,255,255,0.1);box-shadow:0 32px 80px rgba(0,0,0,0.5);max-width:280px;margin:0 auto;position:relative;overflow:hidden;}
+.notif-phone::before{content:'';position:absolute;top:12px;left:50%;transform:translateX(-50%);width:60px;height:5px;background:rgba(255,255,255,0.1);border-radius:3px;}
+.notif-phone-label{font-size:8px;color:rgba(255,255,255,0.25);letter-spacing:0.15em;text-transform:uppercase;text-align:center;margin-bottom:16px;margin-top:8px;}
+.np-notification{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 14px;margin-bottom:9px;animation:notifSlide 0.5s ease both;position:relative;overflow:hidden;}
+.np-notification::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;}
+.np-notification.gold::before{background:var(--gold);}
+.np-notification.teal::before{background:var(--teal);}
+.np-notification.green::before{background:#5C8C6A;}
+@keyframes notifSlide{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+.np-app{font-size:8px;color:rgba(255,255,255,0.3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px;font-family:'DM Sans',sans-serif;}
+.np-title{font-size:12px;color:white;font-weight:500;font-family:'DM Sans',sans-serif;margin-bottom:2px;}
+.np-body{font-size:10px;color:rgba(255,255,255,0.5);font-family:'DM Sans',sans-serif;line-height:1.4;}
+.np-time{font-size:8px;color:rgba(255,255,255,0.2);text-align:right;margin-top:5px;font-family:'DM Sans',sans-serif;}
+/* Floating notification badges */
+.notif-badge{position:absolute;background:rgba(14,11,8,0.9);border:1px solid var(--border);border-radius:10px;padding:8px 12px;font-size:10px;color:white;backdrop-filter:blur(8px);white-space:nowrap;animation:badgeFloat 4s ease-in-out infinite;}
+.notif-badge-1{top:-20px;right:-20px;animation-delay:0s;}
+.notif-badge-2{bottom:20px;left:-40px;animation-delay:2s;}
+@keyframes badgeFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+
+.notif-info{}
+.notif-feature-list{display:flex;flex-direction:column;gap:16px;margin-top:24px;}
+.nfl-item{display:flex;align-items:flex-start;gap:14px;padding:16px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:12px;transition:all 0.3s;}
+.nfl-item:hover{background:rgba(255,255,255,0.05);border-color:rgba(201,168,76,0.2);}
+.nfl-icon{font-size:22px;flex-shrink:0;margin-top:2px;}
+.nfl-title{font-size:13px;font-weight:500;color:white;margin-bottom:4px;}
+.nfl-desc{font-size:12px;color:var(--dim);line-height:1.55;}
+
+/* ── GIVE FORWARD ── */
+#giveforward{background:linear-gradient(180deg,#0a1f19,#0d2a20,#0E0B08);}
+.gf-layout{display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:start;margin-top:64px;}
+.cause-list{display:flex;flex-direction:column;gap:10px;margin-bottom:22px;}
+.cause-item{display:flex;align-items:center;gap:13px;padding:15px 17px;border-radius:11px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);transition:all 0.35s;cursor:default;}
+.cause-item.gf-active{border-color:rgba(126,203,184,0.4);background:rgba(46,107,94,0.1);}
+.cause-icon{font-size:24px;flex-shrink:0;}
+.cause-name{font-size:13px;font-weight:500;color:white;margin-bottom:2px;}
+.cause-impact{font-size:11px;color:var(--dim);}
+.cause-tag{font-size:9px;padding:2px 8px;border-radius:10px;background:rgba(126,203,184,0.12);border:1px solid rgba(126,203,184,0.25);color:var(--teal-light);opacity:0;transition:opacity 0.3s;}
+.cause-item.gf-active .cause-tag{opacity:1;}
+.split-vis{background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:14px;padding:22px;margin-bottom:22px;}
+.sv-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:13px;}
+.sv-label{font-size:10px;color:var(--dim);letter-spacing:0.1em;text-transform:uppercase;}
+.sv-pct{font-size:11px;color:var(--gold);background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.2);padding:3px 10px;border-radius:10px;transition:all 0.3s;}
+.sv-bar{display:flex;height:48px;border-radius:10px;overflow:hidden;margin-bottom:11px;}
+.sv-reg{background:linear-gradient(90deg,var(--gold),#B8923E);display:flex;align-items:center;justify-content:center;font-size:11px;color:white;font-weight:500;transition:width 0.7s ease;}
+.sv-gf{background:linear-gradient(90deg,#2E6B5E,#1a3d30);display:flex;align-items:center;justify-content:center;font-size:11px;color:white;font-weight:500;transition:width 0.7s ease;}
+.sv-leg{display:flex;gap:14px;}
+.svl{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--dim);}
+.svl-d{width:9px;height:9px;border-radius:2px;}
+.impact-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;}
+.is-card{padding:16px;border-radius:11px;text-align:center;background:rgba(46,107,94,0.08);border:1px solid rgba(46,107,94,0.18);transition:all 0.35s;}
+.is-card:hover{background:rgba(46,107,94,0.14);border-color:rgba(126,203,184,0.3);transform:translateY(-2px);}
+.is-val{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:300;color:var(--teal-light);}
+.is-label{font-size:10px;color:var(--dim);margin-top:4px;line-height:1.4;}
+/* Blessing card */
+.demo-right{position:sticky;top:120px;}
+.demo-label{font-size:9px;color:var(--dim);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:13px;}
+.blessing-card{background:linear-gradient(160deg,#0a1f19 0%,#1d4a3f 55%,#2E6B5E 100%);border-radius:16px;padding:26px;border:1px solid rgba(126,203,184,0.18);box-shadow:0 24px 60px rgba(0,0,0,0.5);position:relative;overflow:hidden;}
+.blessing-card::before{content:'🌱';position:absolute;right:-8px;top:-8px;font-size:86px;opacity:0.07;}
+.bc-ring{width:52px;height:52px;border-radius:50%;background:rgba(126,203,184,0.12);border:1.5px solid rgba(126,203,184,0.3);display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:13px;}
+.bc-title{font-family:'Cormorant Garamond',serif;font-size:22px;color:white;margin-bottom:3px;}
+.bc-sub{font-size:11px;color:var(--dim);margin-bottom:11px;}
+.bc-amount{font-family:'Cormorant Garamond',serif;font-size:36px;color:var(--teal-light);font-weight:300;line-height:1;margin-bottom:14px;transition:all 0.4s;}
+.bc-split-row{display:flex;gap:9px;margin-bottom:13px;}
+.bc-si{flex:1;background:rgba(255,255,255,0.06);border-radius:9px;padding:10px 7px;text-align:center;}
+.bc-si-icon{font-size:15px;margin-bottom:4px;}
+.bc-si-label{font-size:9px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.1em;}
+.bc-si-val{font-family:'Cormorant Garamond',serif;font-size:15px;color:white;margin-top:2px;transition:all 0.4s;}
+.bc-impact{background:rgba(255,255,255,0.06);border:1px solid rgba(126,203,184,0.15);border-radius:10px;padding:11px 13px;font-size:12px;color:var(--teal-light);line-height:1.6;font-style:italic;margin-bottom:13px;min-height:52px;transition:all 0.4s;}
+.bc-share{display:flex;gap:7px;}
+.bc-btn{flex:1;padding:9px;border-radius:8px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;}
+.bc-btn.wa{background:#25D366;color:white;}
+.bc-btn.done{background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.65);}
+.demo-controls{display:flex;gap:7px;margin-top:12px;flex-wrap:wrap;}
+.demo-chip{padding:6px 12px;border-radius:20px;font-size:11px;cursor:pointer;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:var(--dim);transition:all 0.2s;font-family:'DM Sans',sans-serif;}
+.demo-chip:hover,.demo-chip.on{border-color:var(--teal);background:rgba(46,107,94,0.12);color:var(--teal-light);}
+.demo-playbar{margin-top:10px;display:flex;align-items:center;gap:9px;}
+.demo-progress-track{flex:1;height:3px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden;}
+.demo-progress-fill{height:100%;background:var(--teal-light);border-radius:2px;width:0%;transition:width 0.1s linear;}
+.demo-play-label{font-size:9px;color:var(--dim);letter-spacing:0.1em;white-space:nowrap;}
+
+/* ── GIFT CARDS ── */
+#giftcards{background:linear-gradient(180deg,#0E0B08,#12100d);}
+.gc-marquee-wrap{margin-top:48px;overflow:hidden;position:relative;}
+.gc-marquee-wrap::before,.gc-marquee-wrap::after{content:'';position:absolute;top:0;bottom:0;width:120px;z-index:2;pointer-events:none;}
+.gc-marquee-wrap::before{left:0;background:linear-gradient(to right,var(--deep),transparent);}
+.gc-marquee-wrap::after{right:0;background:linear-gradient(to left,var(--deep),transparent);}
+.gc-row{display:flex;gap:9px;margin-bottom:9px;animation:marquee 35s linear infinite;}
+.gc-row:nth-child(2){animation-direction:reverse;animation-duration:42s;}
+.gc-row:hover{animation-play-state:paused;}
+.gc-card{display:flex;align-items:center;gap:9px;padding:10px 15px;border-radius:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);white-space:nowrap;flex-shrink:0;transition:all 0.25s;cursor:default;}
+.gc-card:hover{background:rgba(255,255,255,0.07);border-color:rgba(201,168,76,0.2);transform:translateY(-2px);}
+.gc-logo{font-size:19px;}
+.gc-name{font-size:11px;font-weight:500;color:rgba(255,255,255,0.75);}
+.gc-cat{font-size:9px;color:var(--dim);}
+@keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* ── REGISTER — inline onboarding ── */
+#register{padding:0;background:transparent;}
+
+/* Waitlist entry */
+.register-entry{
+  padding:120px 56px;
+  background:linear-gradient(160deg,#0E0B08 0%,#1A1410 35%,#0d211b 72%,#2E6B5E 140%);
+  position:relative;overflow:hidden;text-align:center;
+}
+.register-entry::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(201,168,76,0.07) 0%,transparent 55%);}
+.register-entry-inner{position:relative;z-index:1;max-width:560px;margin:0 auto;}
+.re-eyebrow{font-size:10px;letter-spacing:0.22em;text-transform:uppercase;color:var(--teal-light);opacity:0.75;margin-bottom:14px;}
+.re-title{font-family:'Cormorant Garamond',serif;font-size:clamp(36px,4vw,52px);font-weight:300;line-height:1.12;margin-bottom:14px;}
+.re-title em{font-style:italic;color:var(--gold);}
+.re-sub{font-size:14px;color:var(--mid);line-height:1.7;margin-bottom:36px;}
+.re-form{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:28px;backdrop-filter:blur(8px);text-align:left;}
+.rf-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.rf-label{font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:0.1em;text-transform:uppercase;display:block;margin-bottom:6px;}
+.rf-input{width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:9px;padding:12px 15px;font-size:13px;font-family:'DM Sans',sans-serif;color:white;transition:all 0.2s;margin-bottom:12px;}
+.rf-input::placeholder{color:rgba(255,255,255,0.2);}
+.rf-input:focus{outline:none;border-color:rgba(201,168,76,0.5);background:rgba(255,255,255,0.09);}
+.rf-select{width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:9px;padding:12px 15px;font-size:13px;font-family:'DM Sans',sans-serif;color:rgba(255,255,255,0.7);cursor:pointer;margin-bottom:12px;}
+.rf-select option{background:#1A1410;color:white;}
+.rf-submit{width:100%;padding:14px;background:var(--gold);color:white;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.25s;box-shadow:0 4px 24px rgba(201,168,76,0.35);}
+.rf-submit:hover{background:#B8923E;transform:translateY(-1px);}
+.rf-note{font-size:10px;color:rgba(255,255,255,0.2);margin-top:12px;line-height:1.6;text-align:center;}
+
+/* ── ONBOARDING (inline, replaces register) ── */
+.onboarding-screen{
+  display:none;
+  background:linear-gradient(155deg,#0A0806 0%,#121009 35%,#0d211b 70%,#1a3d30 100%);
+  min-height:100vh;position:relative;overflow:hidden;
+}
+.onboarding-screen.active{display:flex;align-items:stretch;}
+.ob-bg-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(201,168,76,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(201,168,76,0.03) 1px,transparent 1px);background-size:50px 50px;pointer-events:none;}
+
+/* Left nav */
+.ob-left{width:300px;flex-shrink:0;background:rgba(0,0,0,0.3);border-right:1px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;padding:40px 28px;position:sticky;top:0;height:100vh;}
+.ob-logo{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:var(--gold);margin-bottom:4px;}
+.ob-logo-sub{font-size:10px;color:rgba(255,255,255,0.25);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:40px;}
+.ob-step-nav{flex:1;display:flex;flex-direction:column;gap:3px;}
+.ob-sn{display:flex;align-items:center;gap:11px;padding:9px 10px;border-radius:8px;transition:all 0.3s;}
+.ob-sn.done{cursor:pointer;}
+.ob-sn.done:hover{background:rgba(255,255,255,0.04);}
+.ob-sn-dot{width:26px;height:26px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;transition:all 0.3s;border:1.5px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.25);}
+.ob-sn.done .ob-sn-dot{background:#5C8C6A;border-color:#5C8C6A;color:white;}
+.ob-sn.active .ob-sn-dot{background:var(--gold);border-color:var(--gold);color:white;box-shadow:0 0 0 3px rgba(201,168,76,0.2);}
+.ob-sn-label{font-size:12px;color:rgba(255,255,255,0.22);transition:color 0.3s;line-height:1.3;}
+.ob-sn-sub{font-size:10px;color:rgba(255,255,255,0.12);transition:color 0.3s;margin-top:1px;}
+.ob-sn.done .ob-sn-label,.ob-sn.done .ob-sn-sub{color:rgba(255,255,255,0.4);}
+.ob-sn.active .ob-sn-label{color:white;font-weight:500;}
+.ob-sn.active .ob-sn-sub{color:rgba(255,255,255,0.35);}
+.ob-sn-conn{width:1.5px;height:16px;background:rgba(255,255,255,0.06);margin-left:22px;}
+.ob-sn.done+.ob-sn-conn{background:rgba(92,140,106,0.3);}
+/* Couple preview */
+.ob-couple-preview{margin-top:auto;padding:14px;background:rgba(201,168,76,0.05);border:1px solid rgba(201,168,76,0.14);border-radius:10px;}
+.ocp-label{font-size:9px;color:var(--gold);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:6px;}
+.ocp-names{font-family:'Cormorant Garamond',serif;font-size:17px;color:white;font-style:italic;line-height:1.2;}
+.ocp-detail{font-size:10px;color:rgba(255,255,255,0.3);margin-top:4px;}
+.ocp-vibe{display:inline-block;margin-top:5px;padding:2px 9px;border-radius:20px;font-size:9px;background:rgba(201,168,76,0.12);color:var(--gold);border:1px solid rgba(201,168,76,0.2);}
+
+/* Right panel */
+.ob-right{flex:1;display:flex;align-items:center;justify-content:center;padding:48px 56px;min-height:100vh;}
+.ob-card{width:100%;max-width:560px;}
+.ob-tag{font-size:10px;letter-spacing:0.22em;text-transform:uppercase;color:var(--gold);margin-bottom:12px;display:flex;align-items:center;gap:10px;}
+.ob-tag::after{content:'';flex:1;height:1px;background:rgba(201,168,76,0.22);}
+.ob-title{font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;color:white;line-height:1.12;margin-bottom:10px;}
+.ob-title em{font-style:italic;color:#7ecbb8;}
+.ob-sub{font-size:13px;color:rgba(255,255,255,0.35);margin-bottom:28px;line-height:1.65;}
+
+/* Form elements */
+.ob-label{font-size:10px;color:rgba(255,255,255,0.42);letter-spacing:0.1em;text-transform:uppercase;display:block;margin-bottom:7px;}
+.ob-input{width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:13px 16px;font-size:14px;font-family:'DM Sans',sans-serif;color:white;transition:all 0.2s;margin-bottom:14px;}
+.ob-input::placeholder{color:rgba(255,255,255,0.2);}
+.ob-input:focus{outline:none;border-color:rgba(201,168,76,0.5);background:rgba(255,255,255,0.09);}
+.ob-input option{background:#1A1410;color:white;}
+.ob-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.ob-row .ob-input{margin-bottom:0;}
+
+/* Choice cards */
+.ob-choices{display:grid;gap:11px;margin-bottom:22px;}
+.ob-choices.c2{grid-template-columns:1fr 1fr;}
+.ob-choices.c3{grid-template-columns:1fr 1fr 1fr;}
+.ob-choice{background:rgba(255,255,255,0.03);border:1.5px solid rgba(255,255,255,0.08);border-radius:12px;padding:18px 14px;cursor:pointer;transition:all 0.25s;text-align:center;position:relative;overflow:hidden;}
+.ob-choice:hover{border-color:rgba(201,168,76,0.3);transform:translateY(-2px);}
+.ob-choice.selected{border-color:var(--gold);background:rgba(201,168,76,0.08);}
+.ob-choice-check{position:absolute;top:9px;right:9px;width:18px;height:18px;border-radius:50%;background:var(--gold);color:white;font-size:10px;display:flex;align-items:center;justify-content:center;opacity:0;transition:all 0.2s;}
+.ob-choice.selected .ob-choice-check{opacity:1;}
+.ob-choice-icon{font-size:26px;margin-bottom:8px;display:block;}
+.ob-choice-label{font-size:12px;font-weight:500;color:white;}
+.ob-choice-sub{font-size:10px;color:rgba(255,255,255,0.32);margin-top:3px;line-height:1.4;}
+
+/* Pills */
+.ob-pills{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;}
+.ob-pill{padding:7px 14px;border-radius:22px;border:1.5px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);font-size:12px;color:rgba(255,255,255,0.5);cursor:pointer;transition:all 0.2s;}
+.ob-pill:hover{border-color:rgba(201,168,76,0.4);color:white;}
+.ob-pill.selected{border-color:var(--gold);background:rgba(201,168,76,0.1);color:var(--gold);}
+
+/* Pref chips */
+.pref-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:16px;}
+.pref-chip{border:1.5px solid rgba(255,255,255,0.08);border-radius:10px;padding:11px 12px;cursor:pointer;transition:all 0.22s;display:flex;align-items:center;gap:9px;background:rgba(255,255,255,0.03);}
+.pref-chip:hover{border-color:rgba(201,168,76,0.3);}
+.pref-chip.selected{border-color:var(--gold);background:rgba(201,168,76,0.08);}
+.pref-chip .pe{font-size:18px;}
+.pref-chip-label{font-size:11px;font-weight:500;color:white;}
+.pref-chip-sub{font-size:9px;color:rgba(255,255,255,0.3);margin-top:1px;}
+
+/* Cause selector */
+.cause-grid-ob{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin-bottom:20px;}
+.cause-card-ob{background:rgba(255,255,255,0.03);border:1.5px solid rgba(255,255,255,0.07);border-radius:12px;padding:20px 12px 16px;cursor:pointer;transition:all 0.25s;text-align:center;position:relative;}
+.cause-card-ob:hover{border-color:rgba(46,107,94,0.35);}
+.cause-card-ob.selected{border-color:var(--teal);background:rgba(46,107,94,0.1);}
+.cob-tick{position:absolute;top:9px;right:9px;width:18px;height:18px;border-radius:50%;background:var(--teal);color:white;font-size:10px;display:flex;align-items:center;justify-content:center;opacity:0;transition:all 0.2s;}
+.cause-card-ob.selected .cob-tick{opacity:1;}
+.cob-emoji{font-size:30px;margin-bottom:9px;}
+.cob-name{font-size:11px;font-weight:500;color:white;margin-bottom:3px;}
+.cob-unit{font-size:9px;color:rgba(255,255,255,0.3);}
+.cob-eg{display:inline-block;margin-top:8px;font-size:9px;color:var(--teal-light);background:rgba(46,107,94,0.15);border:1px solid rgba(46,107,94,0.25);padding:3px 8px;border-radius:8px;}
+
+/* Split slider */
+.split-section-ob{margin-bottom:20px;display:none;}
+.split-section-ob.show{display:block;animation:panelIn 0.35s ease both;}
+.ob-split-bar{display:flex;height:44px;border-radius:10px;overflow:hidden;margin-bottom:10px;}
+.ob-sb-reg{background:linear-gradient(90deg,var(--gold),#B8923E);display:flex;align-items:center;justify-content:center;font-size:11px;color:white;font-weight:500;transition:width 0.3s;}
+.ob-sb-give{background:linear-gradient(90deg,#2E6B5E,#1a3d30);display:flex;align-items:center;justify-content:center;font-size:11px;color:white;font-weight:500;transition:width 0.3s;}
+.ob-range{width:100%;appearance:none;height:5px;border-radius:3px;outline:none;cursor:pointer;margin-bottom:5px;}
+.ob-range::-webkit-slider-thumb{appearance:none;width:22px;height:22px;border-radius:50%;background:white;border:3px solid var(--gold);cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,0.3);}
+.range-labels{display:flex;justify-content:space-between;font-size:9px;color:rgba(255,255,255,0.2);}
+
+/* Impact preview in OB */
+.ob-impact-preview{background:rgba(46,107,94,0.1);border:1px solid rgba(46,107,94,0.22);border-radius:12px;padding:14px 16px;margin-top:12px;display:none;}
+.ob-impact-preview.show{display:block;}
+.oip-label{font-size:9px;color:var(--teal-light);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:9px;}
+.oip-row{display:flex;align-items:center;gap:9px;margin-bottom:6px;}
+.oip-amt{font-family:'Cormorant Garamond',serif;font-size:14px;color:white;width:80px;flex-shrink:0;}
+.oip-desc{font-size:11px;color:rgba(255,255,255,0.38);flex:1;}
+.oip-result{font-size:11px;color:var(--teal-light);}
+
+/* Guest message preview */
+.ob-guest-preview{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:14px 16px;margin-top:12px;display:none;}
+.ob-guest-preview.show{display:block;}
+.ogp-label{font-size:9px;color:rgba(255,255,255,0.25);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:9px;}
+.ogp-banner{display:flex;align-items:center;gap:11px;background:linear-gradient(135deg,#0e2a22,#1d4a3f);border-radius:8px;padding:12px 14px;}
+.ogp-icon{font-size:20px;flex-shrink:0;}
+.ogp-text{font-size:12px;color:rgba(255,255,255,0.6);line-height:1.55;}
+.ogp-text strong{color:var(--teal-light);}
+
+/* Notif schedule OB */
+.ob-notif-schedule{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;}
+.obs-item{display:flex;align-items:center;gap:11px;padding:11px 14px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:9px;}
+.obs-icon{font-size:18px;flex-shrink:0;}
+.obs-info{flex:1;}
+.obs-title{font-size:12px;font-weight:500;color:white;}
+.obs-time{font-size:10px;color:rgba(255,255,255,0.3);margin-top:2px;}
+.obs-tog{width:34px;height:18px;border-radius:9px;background:var(--gold);position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0;}
+.obs-tog::after{content:'';position:absolute;width:14px;height:14px;background:white;border-radius:50%;top:2px;right:2px;transition:transform 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.2);}
+.obs-tog.off{background:rgba(255,255,255,0.1);}
+.obs-tog.off::after{transform:translateX(-16px);}
+
+/* Summary */
+.ob-summary{background:rgba(255,255,255,0.03);border:1px solid rgba(201,168,76,0.18);border-radius:12px;padding:18px;margin-bottom:18px;}
+.obs-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.05);}
+.obs-row:last-child{border-bottom:none;}
+.obs-label{font-size:11px;color:rgba(255,255,255,0.32);}
+.obs-value{font-size:12px;color:white;font-weight:500;}
+
+/* Nav */
+.ob-nav{display:flex;justify-content:space-between;align-items:center;margin-top:24px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.07);}
+.ob-back{background:transparent;color:rgba(255,255,255,0.28);border:1px solid rgba(255,255,255,0.09);padding:11px 20px;border-radius:8px;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;}
+.ob-back:hover{color:white;border-color:rgba(255,255,255,0.22);}
+.ob-skip{background:transparent;color:rgba(255,255,255,0.22);border:none;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;padding:8px;transition:color 0.2s;}
+.ob-skip:hover{color:rgba(255,255,255,0.45);}
+.ob-next{background:var(--gold);color:white;border:none;padding:13px 28px;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.22s;box-shadow:0 4px 20px rgba(201,168,76,0.35);}
+.ob-next:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(201,168,76,0.48);}
+.ob-next-teal{background:linear-gradient(135deg,#2E6B5E,#1a3d30);box-shadow:0 4px 20px rgba(46,107,94,0.4);}
+.ob-next-final{background:linear-gradient(135deg,var(--gold),#B8923E);font-size:14px;padding:14px 32px;}
+
+/* Step panels */
+.ob-panel{display:none;}
+.ob-panel.active{display:block;animation:panelIn 0.4s cubic-bezier(0.4,0,0.2,1) both;}
+
+/* ── FOOTER ── */
+footer{padding:36px 56px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:#0E0B08;}
+.footer-brand{font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--gold);}
+.footer-sub{font-size:10px;color:var(--dim);margin-top:3px;}
+.footer-right{font-size:11px;color:var(--dim);}
+
+/* Toast */
+.toast{position:fixed;bottom:22px;right:22px;background:var(--deep);color:white;padding:11px 18px;border-radius:8px;font-size:12px;z-index:999;transform:translateY(60px);opacity:0;transition:all 0.3s;border-left:3px solid var(--gold);box-shadow:0 8px 32px rgba(0,0,0,0.4);}
+.toast.show{transform:translateY(0);opacity:1;}
+</style>
+</head>
+<body>
+
+<div class="cur" id="cur"></div>
+<div class="cur-ring" id="cur-ring"></div>
+
+<!-- ══════════ MARKETING SITE ══════════ -->
+<div id="marketing-site">
+
+<!-- NAV -->
+<nav id="nav">
+  <div class="nav-logo">WeddingPay<span>·</span>Give Forward</div>
+  <div class="nav-links">
+    <a class="nav-link" href="#story">Our Story</a>
+    <a class="nav-link" href="#features">Features</a>
+    <a class="nav-link" href="#themes">Themes</a>
+    <a class="nav-link" href="#notifications">Notifications</a>
+    <a class="nav-link" href="#giveforward">Give Forward</a>
+  </div>
+  <button class="nav-cta" onclick="scrollToRegister()">Get Early Access</button>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="home" style="padding:0;min-height:100vh;display:block;position:relative;overflow:hidden;">
+
+  <!-- ══ CAROUSEL SLIDES ══ -->
+  <div class="carousel" id="carousel">
+
+    <!-- Slide 1 — Traditional -->
+    <div class="cs-slide active" style="background:linear-gradient(160deg,#1a0505 0%,#3d1010 30%,#6b2020 60%,#c9a84c 140%);">
+      <div class="cs-img" style="background-image:url('https://images.unsplash.com/photo-IfjHaIoAoqE?w=1920&q=85&fit=crop&crop=center');"></div>
+      <div class="cs-overlay"></div>
+      <div class="cs-vibe-badge">🪔 Traditional</div>
+    </div>
+
+    <!-- Slide 2 — Luxury -->
+    <div class="cs-slide" style="background:linear-gradient(160deg,#080808 0%,#1a1410 40%,#2d1f14 80%,#c9a84c 160%);">
+      <div class="cs-img" style="background-image:url('https://images.unsplash.com/photo-7O422yG_b80?w=1920&q=85&fit=crop&crop=center');"></div>
+      <div class="cs-overlay"></div>
+      <div class="cs-vibe-badge">✦ Luxury</div>
+    </div>
+
+    <!-- Slide 3 — Destination -->
+    <div class="cs-slide" style="background:linear-gradient(160deg,#0a1520 0%,#1a3050 40%,#2a5080 80%,#7ecbb8 160%);">
+      <div class="cs-img" style="background-image:url('https://images.unsplash.com/photo-O9b1R1oZJNY?w=1920&q=85&fit=crop&crop=center');"></div>
+      <div class="cs-overlay"></div>
+      <div class="cs-vibe-badge">🌅 Destination</div>
+    </div>
+
+    <!-- Slide 4 — Boho -->
+    <div class="cs-slide" style="background:linear-gradient(160deg,#1a1a0a 0%,#2d3a1a 40%,#4a5a2a 80%,#c4d67a 160%);">
+      <div class="cs-img" style="background-image:url('https://images.unsplash.com/photo-V3iYiRxQGPk?w=1920&q=85&fit=crop&crop=center');"></div>
+      <div class="cs-overlay"></div>
+      <div class="cs-vibe-badge">🌿 Boho</div>
+    </div>
+
+  </div>
+
+  <!-- ══ HERO CONTENT — fixed overlay on all slides ══ -->
+  <div class="hero-content-overlay">
+
+    <!-- Top: eyebrow -->
+    <div class="hero-eyebrow" style="animation:eyebrowIn 1s ease both;">✦ Introducing WeddingPay · Give Forward</div>
+
+    <!-- Main headline -->
+    <h1 class="hero-title" style="animation:titleIn 1.1s cubic-bezier(0.4,0,0.2,1) 0.2s both;">
+      The wedding platform<br>
+      that <em id="hero-word">celebrates</em>
+    </h1>
+    <div class="hero-dash" style="animation:dashIn 0.8s ease 0.6s both;"></div>
+    <p class="hero-sub" style="animation:subIn 1s ease 0.8s both;">
+      Gift card registry. Notification Central. Give Forward. Live Scrapbook.<br>Built for India. <em>Powered by love.</em>
+    </p>
+
+    <!-- CTA buttons -->
+    <div class="hero-btns" style="animation:btnsIn 1s ease 1s both;">
+      <button class="btn-primary" onclick="window.open('weddingpay_walle_eva.html#guest','_blank')">👁 Guest View Demo →</button>
+      <button class="btn-secondary" onclick="window.open('weddingpay_walle_eva.html#dashboard','_blank')">◈ Dashboard Demo →</button>
+    </div>
+    <div class="hero-btn-label" style="animation:btnsIn 1s ease 1.1s both;">Live prototype · No account needed · Demo edition</div>
+
+    <!-- Animated counters -->
+    <div class="hero-stats" style="animation:statsIn 1s ease 1.2s both;">
+      <div class="hs"><span class="hs-val" data-target="3" data-suffix="">0</span><div class="hs-label">Core Modules</div></div>
+      <div class="hs"><span class="hs-val" data-target="50" data-suffix="+">0</span><div class="hs-label">Gift Card Brands</div></div>
+      <div class="hs"><span class="hs-val" data-target="6" data-suffix="">0</span><div class="hs-label">Gift Categories</div></div>
+      <div class="hs"><span class="hs-val" data-target="3" data-suffix="">0</span><div class="hs-label">Give Forward Causes</div></div>
+    </div>
+
+  </div>
+
+  <!-- ══ CAROUSEL CONTROLS ══ -->
+  <!-- Dot indicators -->
+  <div class="carousel-dots" id="carousel-dots">
+    <div class="cdot active" onclick="goToSlide(0)"></div>
+    <div class="cdot" onclick="goToSlide(1)"></div>
+    <div class="cdot" onclick="goToSlide(2)"></div>
+    <div class="cdot" onclick="goToSlide(3)"></div>
+  </div>
+
+  <!-- Arrow controls -->
+  <button class="carousel-arrow carousel-arrow-left" onclick="carouselPrev()">&#8249;</button>
+  <button class="carousel-arrow carousel-arrow-right" onclick="carouselNext()">&#8250;</button>
+
+  <!-- Progress bar -->
+  <div class="carousel-progress"><div class="carousel-progress-fill" id="carousel-progress-fill"></div></div>
+
+  <!-- Scroll hint -->
+  <div class="scroll-hint"><span>Scroll</span><div class="scroll-line"></div></div>
+
+</section>
+
+<div class="divider"></div>
+
+<!-- ANIMATED STATS BAR -->
+<div class="stats-bar">
+  <div class="sb-item"><span class="sb-val" data-target="14" data-suffix="">0</span><div class="sb-label">Gift cards received</div><div class="sb-sub">per 240-guest wedding avg</div></div>
+  <div class="sb-item"><span class="sb-val" data-target="9" data-suffix="">0</span><div class="sb-label">Give Forward add-ons</div><div class="sb-sub">guests who chose to give more</div></div>
+  <div class="sb-item"><span class="sb-val" data-target="820" data-suffix="">0</span><div class="sb-label">Meals funded</div><div class="sb-sub">from optional Give Forward add-ons</div></div>
+  <div class="sb-item"><span class="sb-val" data-target="127" data-suffix="">0</span><div class="sb-label">Memories added</div><div class="sb-sub">avg photos + voice + video</div></div>
+  <div class="sb-item"><span class="sb-val" data-target="41" data-suffix="%">0</span><div class="sb-label">Guests gifted</div><div class="sb-sub">of those who opened the registry</div></div>
+</div>
+
+<div class="divider"></div>
+
+<!-- STORY -->
+<section id="story">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;">
+    <div class="story-visual reveal-left">
+      <div class="couple-visual" style="margin-bottom:20px;">
+        <div style="position:relative;display:inline-block;">
+          <div class="couple-orbit couple-orbit-2"></div>
+          <div class="couple-orbit couple-orbit-1"></div>
+          <div class="couple-frame" style="width:120px;height:120px;">
+            <div class="couple-glow"></div>
+            <div class="sil-groom"><div class="sil-groom-sherwani"></div><div class="sil-groom-body"></div><div class="sil-groom-head"></div></div>
+            <div class="sil-bride"><div class="sil-bride-veil"></div><div class="sil-bride-lehenga"></div><div class="sil-bride-body"></div><div class="sil-bride-head"></div></div>
+            <div class="sil-rings">💍</div>
+          </div>
+          <div class="couple-date">Wall-E & EVA · 28 November 2026</div>
+        </div>
+      </div>
+      <div class="story-visual-title" style="margin-top:28px;">Wall-E <span style="color:var(--teal-light)">&</span> EVA</div>
+      <div class="story-visual-sub">28 November 2026 · The Leela Palace, Udaipur</div>
+    </div>
+    <div class="reveal-right">
+      <div class="s-eyebrow">The Couple Behind the Demo</div>
+      <div class="story-quote">"He spent the whole evening<br>trying to <em>say hello.</em>"</div>
+      <div class="story-body">Wall-E and EVA met through mutual friends at a rooftop gathering in Mumbai — he was the quiet one in the corner, she was the one who lit up the room. He spent the entire evening trying to work up the courage to say hello.<br><br>Three years, two cities, and one very patient proposal later, they finally said yes to forever. The wedding is in Udaipur — because some moments deserve a backdrop worthy of them.</div>
+      <div class="story-tags">
+        <span class="story-tag gold">✦ 3 years in the making</span>
+        <span class="story-tag green">🌱 Started with a plant</span>
+        <span class="story-tag">🚀 The Leela Palace, Udaipur</span>
+        <span class="story-tag">💍 28 November 2026</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- FEATURES — 3 modules -->
+<section id="features">
+  <div class="reveal">
+    <div class="s-eyebrow">Product Features</div>
+    <h2 class="s-title">Three modules.<br><em>One celebration.</em></h2>
+    <p class="s-sub">Everything the couple needs — from registry to notifications to memories — in one focused platform.</p>
+  </div>
+
+  <div class="features-tabs reveal">
+    <div class="f-tab active" onclick="switchModule(0,this)"><div class="f-tab-icon">♡</div><div class="f-tab-label">Wedding Registry</div></div>
+    <div class="f-tab" onclick="switchModule(1,this)"><div class="f-tab-icon">🔔</div><div class="f-tab-label">Notification Central</div></div>
+    <div class="f-tab" onclick="switchModule(2,this)"><div class="f-tab-icon">📸</div><div class="f-tab-label">Live Scrapbook</div></div>
+  </div>
+
+  <div class="module-panels reveal">
+
+    <!-- MODULE 0: Registry -->
+    <div class="module-panel active" id="mp-0">
+      <div>
+        <div class="module-num">Module 01</div>
+        <div class="module-title">Wedding Registry</div>
+        <div class="module-desc">The couple sets up gift card categories during onboarding. Guests visit the registry, pick a category, choose a brand, and purchase a gift card directly. Every gift card lands in the couple's vault with its redemption code. Give Forward is an optional add-on guests can choose at checkout.</div>
+        <div class="module-features">
+          <div class="mf-item">6 curated categories — Home, Gold & Jewellery, Travel, Entertainment, Wellness, Fashion</div>
+          <div class="mf-item">50+ Indian gift card brands mapped to each category</div>
+          <div class="mf-item">Variable denominations — guest enters any amount from ₹100 to ₹50,000</div>
+          <div class="mf-item">Gift Card Vault — couple sees every card with redemption code (tap to reveal)</div>
+          <div class="mf-item">Give Forward — optional add-on at checkout, guest chooses their % on top</div>
+          <div class="mf-item">Payment via CC, UPI, Debit, Net Banking — owned by aggregator's gateway</div>
+        </div>
+        <button onclick="window.open('weddingpay_walle_eva.html#guest','_blank')" style="margin-top:18px;background:var(--gold);color:white;border:none;padding:11px 22px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;display:inline-flex;align-items:center;gap:7px;">👁 See Guest View →</button>
+      </div>
+      <div class="mini-dash">
+        <div class="mini-bar"><div class="md" style="background:#FF5F57"></div><div class="md" style="background:#FFBD2E"></div><div class="md" style="background:#28CA42"></div><div class="mini-bar-title">Registry · Wall-E & EVA</div></div>
+        <div class="mini-body">
+          <div class="rp-stats"><div class="rp-stat"><div class="rp-sl">Gift Cards</div><div class="rp-sv">14</div></div><div class="rp-stat"><div class="rp-sl">Total Value</div><div class="rp-sv">₹68.5K</div></div></div>
+          <div class="rp-cats">
+            <div class="rp-cat"><div class="rp-ct"><span class="rp-cn">Home & Living</span><span style="font-size:12px">🏠</span></div><div class="rp-bar"><div class="rp-fill" style="width:64%"></div></div><div class="rp-amts"><span class="rp-raised">₹32K</span><span class="rp-target">₹50K</span></div></div>
+            <div class="rp-cat"><div class="rp-ct"><span class="rp-cn">Gold & Jewellery</span><span style="font-size:12px">🪙</span></div><div class="rp-bar"><div class="rp-fill" style="width:46%"></div></div><div class="rp-amts"><span class="rp-raised">₹18.5K</span><span class="rp-target">₹40K</span></div></div>
+            <div class="rp-cat"><div class="rp-ct"><span class="rp-cn">Travel</span><span style="font-size:12px">✈️</span></div><div class="rp-bar"><div class="rp-fill" style="width:27%"></div></div><div class="rp-amts"><span class="rp-raised">₹8K</span><span class="rp-target">₹30K</span></div></div>
+            <div class="rp-cat"><div class="rp-ct"><span class="rp-cn">Entertainment</span><span style="font-size:12px">🎭</span></div><div class="rp-bar"><div class="rp-fill" style="width:37%"></div></div><div class="rp-amts"><span class="rp-raised">₹5.5K</span><span class="rp-target">₹15K</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODULE 1: Notification Central -->
+    <div class="module-panel" id="mp-1">
+      <div>
+        <div class="module-num">Module 02</div>
+        <div class="module-title">Notification Central</div>
+        <div class="module-desc">The couple sets a pre-wedding notification schedule once. WeddingPay handles everything — save the date, formal invite, reminders, and a personalised morning-of message. Guests get the right information at exactly the right time. No WhatsApp chaos.</div>
+        <div class="module-features">
+          <div class="mf-item">5 scheduled notification types — fully automated</div>
+          <div class="mf-item">WhatsApp Business API + SMS + Email in one setup</div>
+          <div class="mf-item">Guest phone numbers already captured at signup</div>
+          <div class="mf-item">Multi-language — English, Hindi, 8 regional languages</div>
+          <div class="mf-item">AI writes personalised copy for each notification</div>
+        </div>
+        <button onclick="window.open('weddingpay_walle_eva.html#dashboard','_blank')" style="margin-top:18px;background:var(--gold);color:white;border:none;padding:11px 22px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;display:inline-flex;align-items:center;gap:7px;">◈ See in Dashboard →</button>
+      </div>
+      <div class="mini-dash">
+        <div class="mini-bar"><div class="md" style="background:#FF5F57"></div><div class="md" style="background:#FFBD2E"></div><div class="md" style="background:#28CA42"></div><div class="mini-bar-title">Notification Central · Wall-E & EVA</div></div>
+        <div class="mini-body">
+          <div class="notif-schedule">
+            <div class="ns-item"><span class="ns-icon">💌</span><div class="ns-info"><div class="ns-title">Save the Date</div><div class="ns-time">Sent · 4 months before</div></div><span class="ns-sent-badge">✓ Sent</span></div>
+            <div class="ns-item"><span class="ns-icon">📅</span><div class="ns-info"><div class="ns-title">Formal Invitation</div><div class="ns-time">Sent · 1 month before</div></div><span class="ns-sent-badge">✓ Sent</span></div>
+            <div class="ns-item"><span class="ns-icon">⏰</span><div class="ns-info"><div class="ns-title">1-Week Reminder</div><div class="ns-time">Scheduled · 21 Nov 2026</div></div><div class="ns-tog off" onclick="this.classList.toggle('off')"></div></div>
+            <div class="ns-item"><span class="ns-icon">🌅</span><div class="ns-info"><div class="ns-title">Morning-of Message</div><div class="ns-time">28 Nov 2026 · 8:00 AM</div></div><div class="ns-tog" onclick="this.classList.toggle('off')"></div></div>
+            <div class="ns-item"><span class="ns-icon">🙏</span><div class="ns-info"><div class="ns-title">Thank You</div><div class="ns-time">29 Nov · Auto-personalised</div></div><div class="ns-tog" onclick="this.classList.toggle('off')"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODULE 2: Scrapbook -->
+    <div class="module-panel" id="mp-2">
+      <div>
+        <div class="module-num">Module 03</div>
+        <div class="module-title">Live Scrapbook</div>
+        <div class="module-desc">Guests share photos, voice notes, and video messages during the wedding. The scrapbook builds itself in real time — visible to all invited guests and the couple simultaneously. No app download. No account needed.</div>
+        <div class="module-features">
+          <div class="mf-item">Photos from camera roll — up to 20 per guest</div>
+          <div class="mf-item">Voice notes with live waveform playback</div>
+          <div class="mf-item">Video messages — record or upload</div>
+          <div class="mf-item">Gated — invite list only, no public access</div>
+          <div class="mf-item">Instagram & Facebook social share card generated</div>
+        </div>
+        <button onclick="window.open('weddingpay_walle_eva.html#guest','_blank')" style="margin-top:18px;background:var(--gold);color:white;border:none;padding:11px 22px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;display:inline-flex;align-items:center;gap:7px;">📸 See Memories →</button>
+      </div>
+      <div class="mini-dash">
+        <div class="mini-bar"><div class="md" style="background:#FF5F57"></div><div class="md" style="background:#FFBD2E"></div><div class="md" style="background:#28CA42"></div><div class="mini-bar-title">Live Scrapbook · Wall-E & EVA</div></div>
+        <div class="sb-mosaic-mini">
+          <div class="sb-tile sb-tile-photo" style="background:linear-gradient(135deg,#1a3010,#2a4a1a)">👨‍💼</div>
+          <div class="sb-tile sb-tile-blessing" style="background:linear-gradient(135deg,#0a1f19,#1d4a3f)"><div class="sb-tile-blessing-t" style="color:#7ecbb8">"The ceremony was absolutely beautiful!"</div><div class="sb-tile-blessing-g" style="color:rgba(255,255,255,0.4)">— Arjun</div></div>
+          <div class="sb-tile sb-tile-photo" style="background:linear-gradient(135deg,#0a1520,#1a3050)">👩</div>
+          <div class="sb-tile sb-tile-voice" style="background:#1A1410;padding:10px;"><div style="font-size:18px;">🎤</div><div class="sb-wave">${Array.from({length:12},(_,i)=>`<div class="sb-wave-bar" style="height:${4+Math.abs(Math.sin(i))*12}px"></div>`).join('')}</div><div style="font-size:7px;color:rgba(255,255,255,0.3);font-family:'DM Sans',sans-serif;margin-top:3px;">0:24</div></div>
+          <div class="sb-tile sb-tile-photo" style="background:linear-gradient(135deg,#1a0808,#3a1010)">🌱</div>
+          <div class="sb-tile sb-tile-photo" style="background:linear-gradient(135deg,#FDF3E3,#F0D9A0)">🪙</div>
+          <div class="sb-tile sb-tile-blessing" style="background:linear-gradient(135deg,#2d0a0a,#5a1a0a)"><div class="sb-tile-blessing-t" style="color:var(--gold-light)">"Three years in the making — worth every moment."</div><div class="sb-tile-blessing-g" style="color:rgba(255,255,255,0.4)">— Rohan</div></div>
+          <div class="sb-tile sb-tile-photo" style="background:linear-gradient(135deg,#EDE3F5,#D5A3E8)">🎊</div>
+          <div class="sb-tile" style="background:#1A1410;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:3px;padding:8px;border-radius:7px;"><div style="font-size:18px;">🎥</div><div style="font-size:7px;color:rgba(255,255,255,0.35);font-family:'DM Sans',sans-serif;text-align:center;">0:18</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- THEMES -->
+<section id="themes">
+  <div class="reveal">
+    <div style="max-width:660px;margin-bottom:48px;">
+      <div class="s-eyebrow">✦ AI-Built Registry</div>
+      <h2 class="s-title">Tell your personal AI<br>about the event — and watch it<br><em>build your setup.</em></h2>
+      <p class="s-sub">You describe your wedding in your own words. The AI understands the vibe, configures your registry palette, selects the right gift card brands, and writes your notifications — all before you click launch. Here's a preview of what it creates.</p>
+    </div>
+  </div>
+  <div class="theme-switcher reveal">
+    <div class="th-tab active" onclick="switchTheme('traditional',this)" style="background:rgba(139,58,10,0.1);"><span class="th-tab-icon">🪔</span><div class="th-tab-name" style="color:var(--gold)">Traditional</div><div class="th-tab-sub">AI output · ceremony-led</div></div>
+    <div class="th-tab" onclick="switchTheme('luxury',this)"><span class="th-tab-icon">✦</span><div class="th-tab-name">Luxury</div><div class="th-tab-sub">AI output · grand & opulent</div></div>
+    <div class="th-tab" onclick="switchTheme('boho',this)"><span class="th-tab-icon">🌿</span><div class="th-tab-name">Boho</div><div class="th-tab-sub">AI output · earthy & intimate</div></div>
+    <div class="th-tab" onclick="switchTheme('destination',this)"><span class="th-tab-icon">🌅</span><div class="th-tab-name">Destination</div><div class="th-tab-sub">AI output · adventure-led</div></div>
+  </div>
+  <div class="theme-panels reveal">
+    <!-- Traditional -->
+    <div class="theme-panel active" id="theme-traditional">
+      <div class="theme-preview"><div class="tp-hero" style="background:linear-gradient(160deg,#2d0a0a,#5a1a0a,#8B3A0A,#C9A84C);"><div class="tp-orn" style="color:#E8B84B">🪔 शुभ विवाह 🪔</div><div class="tp-names" style="color:white;font-family:'Cormorant Garamond',serif;font-size:26px;font-style:italic;">Wall-E <span style="color:#E8B84B">&</span> EVA</div><div class="tp-date" style="color:rgba(255,255,255,0.5)">28 NOVEMBER 2026</div></div><div class="tp-body" style="background:#1a0a02;"><div class="tp-reg-row"><div class="tp-ri" style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);"><div class="tp-ri-e">🪙</div><div class="tp-ri-n" style="color:var(--gold-light);font-family:'DM Sans',sans-serif;">Digital Gold</div><div class="tp-ri-bar" style="background:rgba(255,255,255,0.08);"><div class="tp-ri-f" style="width:70%;background:var(--gold);height:100%;border-radius:2px;"></div></div><div class="tp-ri-a" style="color:var(--gold);">₹70,000</div></div><div class="tp-ri" style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);"><div class="tp-ri-e">💎</div><div class="tp-ri-n" style="color:var(--gold-light);font-family:'DM Sans',sans-serif;">Jewellery</div><div class="tp-ri-bar" style="background:rgba(255,255,255,0.08);"><div class="tp-ri-f" style="width:45%;background:var(--gold);height:100%;border-radius:2px;"></div></div><div class="tp-ri-a" style="color:var(--gold);">₹54,000</div></div><div class="tp-ri" style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);"><div class="tp-ri-e">🙏</div><div class="tp-ri-n" style="color:var(--gold-light);font-family:'DM Sans',sans-serif;">Rituals</div><div class="tp-ri-bar" style="background:rgba(255,255,255,0.08);"><div class="tp-ri-f" style="width:35%;background:var(--gold);height:100%;border-radius:2px;"></div></div><div class="tp-ri-a" style="color:var(--gold);">₹17,500</div></div></div></div></div>
+      <div class="theme-info" style="color:white;"><div class="ti-label" style="color:rgba(255,255,255,0.4)">AI detected · Traditional & Cultural</div><div class="ti-title" style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:300;line-height:1.15;margin-bottom:14px;">Rooted in ritual,<br>rich in meaning.</div><div class="ti-desc">When you describe a ceremony-led, family-first wedding — the AI sets deep reds, marigold gold, and selects gold and jewellery gift cards as the priority. Notification copy is generated in ceremonial English with optional Hindi.</div><div class="ti-palette"><div class="ti-sw" style="background:#8B3A0A;"></div><div class="ti-sw" style="background:#C9A84C;"></div><div class="ti-sw" style="background:#5a1a0a;"></div><div class="ti-sw" style="background:#E8D5A3;"></div></div><div class="ti-features"><div class="ti-f">AI selects gold & jewellery brands for your registry</div><div class="ti-f">Notification copy generated in ceremonial tone</div><div class="ti-f">Colour palette applied across all guest surfaces</div></div><div class="ti-gc-strip"><div class="ti-gc" style="border-color:rgba(201,168,76,0.25);color:var(--gold);">🪙 SafeGold</div><div class="ti-gc" style="border-color:rgba(201,168,76,0.25);color:var(--gold);">✨ Tanishq</div><div class="ti-gc" style="border-color:rgba(201,168,76,0.25);color:var(--gold);">💎 CaratLane</div></div></div>
+    </div>
+    <!-- Luxury -->
+    <div class="theme-panel" id="theme-luxury">
+      <div class="theme-preview"><div class="tp-hero" style="background:linear-gradient(160deg,#080808,#1a1410,#2D1F14,#C9A84C);"><div class="tp-orn" style="color:var(--gold)">✦ EXCLUSIVELY YOURS ✦</div><div class="tp-names" style="color:white;font-family:'Cormorant Garamond',serif;font-size:26px;font-style:italic;">Wall-E <span style="color:var(--gold)">&</span> EVA</div><div class="tp-date" style="color:rgba(255,255,255,0.45)">28 · XI · 2026</div></div><div class="tp-body" style="background:#0a0808;"><div class="tp-reg-row"><div class="tp-ri" style="background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.15);"><div class="tp-ri-e">🥂</div><div class="tp-ri-n" style="color:rgba(255,255,255,0.6);font-family:'DM Sans',sans-serif;">Champagne</div><div class="tp-ri-bar" style="background:rgba(255,255,255,0.06);"><div class="tp-ri-f" style="width:80%;background:var(--gold);height:100%;border-radius:2px;"></div></div><div class="tp-ri-a" style="color:var(--gold);">₹96K</div></div><div class="tp-ri" style="background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.15);"><div class="tp-ri-e">💄</div><div class="tp-ri-n" style="color:rgba(255,255,255,0.6);font-family:'DM Sans',sans-serif;">Wellness</div><div class="tp-ri-bar" style="background:rgba(255,255,255,0.06);"><div class="tp-ri-f" style="width:55%;background:var(--gold);height:100%;border-radius:2px;"></div></div><div class="tp-ri-a" style="color:var(--gold);">₹55K</div></div><div class="tp-ri" style="background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.15);"><div class="tp-ri-e">🪙</div><div class="tp-ri-n" style="color:rgba(255,255,255,0.6);font-family:'DM Sans',sans-serif;">Gold</div><div class="tp-ri-bar" style="background:rgba(255,255,255,0.06);"><div class="tp-ri-f" style="width:65%;background:var(--gold);height:100%;border-radius:2px;"></div></div><div class="tp-ri-a" style="color:var(--gold);">₹65K</div></div></div></div></div>
+      <div class="theme-info" style="color:white;"><div class="ti-label" style="color:rgba(255,255,255,0.4)">AI detected · Luxury & Grand</div><div class="ti-title" style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:300;line-height:1.15;margin-bottom:14px;">Palatial. Opulent.<br>Unforgettable.</div><div class="ti-desc">When you describe a grand palace venue, high-end celebration, or black-tie event — the AI applies midnight black and champagne gold, and surfaces premium wellness, fine dining, and jewellery brands for your registry.</div><div class="ti-palette"><div class="ti-sw" style="background:#080808;border-color:rgba(255,255,255,0.2);"></div><div class="ti-sw" style="background:#C9A84C;"></div><div class="ti-sw" style="background:#2D1F14;"></div></div><div class="ti-features"><div class="ti-f">AI surfaces premium wellness & fine dining brands</div><div class="ti-f">Black-tie notification copy generated automatically</div><div class="ti-f">Midnight palette applied across all guest surfaces</div></div><div class="ti-gc-strip"><div class="ti-gc" style="border-color:rgba(201,168,76,0.25);color:var(--gold);">🌿 Forest Essentials</div><div class="ti-gc" style="border-color:rgba(201,168,76,0.25);color:var(--gold);">🥂 EazyDiner</div></div></div>
+    </div>
+    <!-- Boho -->
+    <div class="theme-panel" id="theme-boho">
+      <div class="theme-preview"><div class="tp-hero" style="background:linear-gradient(160deg,#1a1a0a,#2d3a1a,#4a5a2a,#8a9a4a);"><div class="tp-orn" style="color:#c4d67a">🌿 with love & wildflowers 🌻</div><div class="tp-names" style="color:white;font-family:'Cormorant Garamond',serif;font-size:26px;font-style:italic;">Wall-E <span style="color:#c4d67a">&</span> EVA</div><div class="tp-date" style="color:rgba(255,255,255,0.5)">28 november 2026</div></div><div class="tp-body" style="background:#141a0a;"><div class="tp-reg-row"><div class="tp-ri" style="background:rgba(139,154,42,0.1);border:1px solid rgba(139,154,42,0.25);"><div class="tp-ri-e">🌿</div><div class="tp-ri-n" style="color:#c4d67a;font-family:'DM Sans',sans-serif;">Earth</div><div class="tp-ri-bar" style="background:rgba(255,255,255,0.08);"><div class="tp-ri-f" style="width:85%;background:#8a9a4a;height:100%;border-radius:2px;"></div></div><div class="tp-ri-a" style="color:#c4d67a;">₹85K</div></div><div class="tp-ri" style="background:rgba(139,154,42,0.1);border:1px solid rgba(139,154,42,0.25);"><div class="tp-ri-e">🎭</div><div class="tp-ri-n" style="color:#c4d67a;font-family:'DM Sans',sans-serif;">Exp.</div><div class="tp-ri-bar" style="background:rgba(255,255,255,0.08);"><div class="tp-ri-f" style="width:60%;background:#8a9a4a;height:100%;border-radius:2px;"></div></div><div class="tp-ri-a" style="color:#c4d67a;">₹60K</div></div><div class="tp-ri" style="background:rgba(139,154,42,0.1);border:1px solid rgba(139,154,42,0.25);"><div class="tp-ri-e">🍽️</div><div class="tp-ri-n" style="color:#c4d67a;font-family:'DM Sans',sans-serif;">Food</div><div class="tp-ri-bar" style="background:rgba(255,255,255,0.08);"><div class="tp-ri-f" style="width:40%;background:#8a9a4a;height:100%;border-radius:2px;"></div></div><div class="tp-ri-a" style="color:#c4d67a;">₹40K</div></div></div></div></div>
+      <div class="theme-info" style="color:white;"><div class="ti-label" style="color:rgba(255,255,255,0.4)">AI detected · Boho & Intimate</div><div class="ti-title" style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:300;line-height:1.15;margin-bottom:14px;">Free-spirited.<br>Wildly <em style="color:#c4d67a;font-style:italic;">beautiful.</em></div><div class="ti-desc">When you describe a garden wedding, fairy lights, or an intimate gathering — the AI applies earthy greens and warm tones, selects experiences and dining brands, and writes notification copy that feels personal and warm.</div><div class="ti-palette"><div class="ti-sw" style="background:#2d3a1a;"></div><div class="ti-sw" style="background:#8a9a4a;"></div><div class="ti-sw" style="background:#c4d67a;"></div></div><div class="ti-features"><div class="ti-f">AI selects experiences & dining gift cards</div><div class="ti-f">Warm, conversational notification copy generated</div><div class="ti-f">Earthy green palette across all guest surfaces</div></div><div class="ti-gc-strip"><div class="ti-gc" style="border-color:rgba(139,154,42,0.35);color:#c4d67a;">🎭 BookMyShow</div><div class="ti-gc" style="border-color:rgba(139,154,42,0.35);color:#c4d67a;">🍛 Zomato</div></div></div>
+    </div>
+    <!-- Destination -->
+    <div class="theme-panel" id="theme-destination">
+      <div class="theme-preview"><div class="tp-hero" style="background:linear-gradient(160deg,#0a1520,#1a3050,#2a5080,#4a90c0);"><div class="tp-orn" style="color:#7ecbb8">🌅 escape with us ✈️</div><div class="tp-names" style="color:white;font-family:'Cormorant Garamond',serif;font-size:26px;font-style:italic;">Wall-E <span style="color:#7ecbb8">&</span> EVA</div><div class="tp-date" style="color:rgba(255,255,255,0.5)">28 NOVEMBER 2026</div></div><div class="tp-body" style="background:#0a1020;"><div class="tp-reg-row"><div class="tp-ri" style="background:rgba(46,107,94,0.12);border:1px solid rgba(46,107,94,0.3);"><div class="tp-ri-e">✈️</div><div class="tp-ri-n" style="color:#7ecbb8;font-family:'DM Sans',sans-serif;">Travel</div><div class="tp-ri-bar" style="background:rgba(255,255,255,0.06);"><div class="tp-ri-f" style="width:75%;background:#2E6B5E;height:100%;border-radius:2px;"></div></div><div class="tp-ri-a" style="color:#7ecbb8;">₹1.12L</div></div><div class="tp-ri" style="background:rgba(46,107,94,0.12);border:1px solid rgba(46,107,94,0.3);"><div class="tp-ri-e">🏡</div><div class="tp-ri-n" style="color:#7ecbb8;font-family:'DM Sans',sans-serif;">Stays</div><div class="tp-ri-bar" style="background:rgba(255,255,255,0.06);"><div class="tp-ri-f" style="width:50%;background:#2E6B5E;height:100%;border-radius:2px;"></div></div><div class="tp-ri-a" style="color:#7ecbb8;">₹75K</div></div><div class="tp-ri" style="background:rgba(46,107,94,0.12);border:1px solid rgba(46,107,94,0.3);"><div class="tp-ri-e">🧗</div><div class="tp-ri-n" style="color:#7ecbb8;font-family:'DM Sans',sans-serif;">Adv.</div><div class="tp-ri-bar" style="background:rgba(255,255,255,0.06);"><div class="tp-ri-f" style="width:35%;background:#2E6B5E;height:100%;border-radius:2px;"></div></div><div class="tp-ri-a" style="color:#7ecbb8;">₹35K</div></div></div></div></div>
+      <div class="theme-info" style="color:white;"><div class="ti-label" style="color:rgba(255,255,255,0.4)">AI detected · Destination Wedding</div><div class="ti-title" style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:300;line-height:1.15;margin-bottom:14px;">Exotic. Adventurous.<br><em style="color:#7ecbb8;font-style:italic;">Unforgettable.</em></div><div class="ti-desc">When you mention Udaipur, Goa, a beach ceremony, or travelling guests — the AI applies ocean blues, leads the registry with travel and experience brands, and writes notification copy that's breezy and adventure-forward.</div><div class="ti-palette"><div class="ti-sw" style="background:#0a1520;"></div><div class="ti-sw" style="background:#2E6B5E;"></div><div class="ti-sw" style="background:#7ecbb8;"></div></div><div class="ti-features"><div class="ti-f">AI leads registry with travel & experience brands</div><div class="ti-f">Wanderlust notification copy generated automatically</div><div class="ti-f">Ocean blue palette across all guest surfaces</div></div><div class="ti-gc-strip"><div class="ti-gc" style="border-color:rgba(46,107,94,0.4);color:#7ecbb8;">✈️ MakeMyTrip</div><div class="ti-gc" style="border-color:rgba(46,107,94,0.4);color:#7ecbb8;">🏡 Airbnb</div></div></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- NOTIFICATION CENTRAL -->
+<section id="notifications">
+  <div class="notif-layout">
+    <div class="reveal-left">
+      <div class="s-eyebrow">Notification Central</div>
+      <h2 class="s-title">Set it once.<br><em>Guests always know.</em></h2>
+      <p class="s-sub" style="margin-bottom:28px;">Weddings are scattered. Guests forget timings. WhatsApp groups are chaos. WeddingPay uses the phone numbers already captured at signup to send the right message at exactly the right moment — automatically.</p>
+      <div class="notif-feature-list">
+        <div class="nfl-item"><div class="nfl-icon">📋</div><div><div class="nfl-title">Set up once, runs forever</div><div class="nfl-desc">Couple builds the notification schedule during onboarding. Every trigger fires automatically — no day-of management needed.</div></div></div>
+        <div class="nfl-item"><div class="nfl-icon">📱</div><div><div class="nfl-title">Every guest's phone is already in the system</div><div class="nfl-desc">Phone numbers captured during guest list import. No new opt-in needed. WhatsApp, SMS, and email — all in one go.</div></div></div>
+        <div class="nfl-item"><div class="nfl-icon">✦</div><div><div class="nfl-title">AI writes personalised copy per notification</div><div class="nfl-desc">Each message is warm, on-brand, and matches the couple's wedding vibe. Traditional couples get ceremonial language. Boho couples get something warmer.</div></div></div>
+      </div>
+    </div>
+    <div class="notif-visual reveal-right">
+      <div class="notif-badge notif-badge-1">💬 WhatsApp · 240 sent ✓</div>
+      <div class="notif-badge notif-badge-2">🔔 Next: 1-Week reminder · 21 Nov</div>
+      <div class="notif-phone">
+        <div class="notif-phone-label">Guest's phone</div>
+        <div class="np-notification gold" style="animation-delay:0.2s;">
+          <div class="np-app">WeddingPay · Wall-E & EVA</div>
+          <div class="np-title">💌 You're invited!</div>
+          <div class="np-body">Wall-E & EVA are getting married on 28 Nov 2026 at The Leela Palace, Udaipur. Tap to see the registry & add your memory.</div>
+          <div class="np-time">4 months before</div>
+        </div>
+        <div class="np-notification teal" style="animation-delay:0.5s;">
+          <div class="np-app">WeddingPay · Give Forward</div>
+          <div class="np-title">🌱 Your gift feeds families</div>
+          <div class="np-body">5,800 meals funded so far. Your contribution to Wall-E & EVA's registry makes a difference.</div>
+          <div class="np-time">After gifting</div>
+        </div>
+        <div class="np-notification green" style="animation-delay:0.8s;">
+          <div class="np-app">WeddingPay · Tomorrow!</div>
+          <div class="np-title">🌅 The wedding is tomorrow</div>
+          <div class="np-body">Ceremony at 7PM · The Leela Palace, Udaipur · Dress: Formal · Add your memory to the live scrapbook!</div>
+          <div class="np-time">Day before · 9:00 AM</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- GIVE FORWARD -->
+<section id="giveforward">
+  <div class="reveal">
+    <div class="s-eyebrow">Give Forward</div>
+    <h2 class="s-title">Guests who want to<br><em>give more, can.</em></h2>
+    <p class="s-sub">At checkout, guests see the Give Forward option and can choose to add a donation on top of their gift card. Optional, transparent, and expressed in real-world impact.</p>
+  </div>
+  <div class="gf-layout">
+    <div class="reveal">
+      <div class="cause-list" id="cause-list">
+        <div class="cause-item gf-active" data-cause="meals"><div class="cause-icon">🍱</div><div><div class="cause-name">Feed Families</div><div class="cause-impact">₹10 = 10 nutritious meals for families in need</div></div><div class="cause-tag">Active</div></div>
+        <div class="cause-item" data-cause="books"><div class="cause-icon">📚</div><div><div class="cause-name">Books & Education</div><div class="cause-impact">₹100 = 5 books for underprivileged children</div></div><div class="cause-tag">Active</div></div>
+        <div class="cause-item" data-cause="medical"><div class="cause-icon">🏥</div><div><div class="cause-name">Medical Care</div><div class="cause-impact">₹1,000 = 1 full medical consultation covered</div></div><div class="cause-tag">Active</div></div>
+      </div>
+      <div class="split-vis">
+        <div class="sv-header"><div class="sv-label">How it appears at checkout</div><div class="sv-pct" id="sv-pct">Guest adds 15%</div></div>
+        <div class="sv-bar"><div class="sv-reg" id="sv-reg" style="width:85%">Gift Card ₹4,250</div><div class="sv-gf" id="sv-gf" style="width:15%">+₹750</div></div>
+        <div class="sv-leg"><div class="svl"><div class="svl-d" style="background:var(--gold)"></div>Gift card value</div><div class="svl"><div class="svl-d" style="background:var(--teal)"></div>Give Forward add-on</div></div>
+      </div>
+      <div class="impact-strip">
+        <div class="is-card"><div class="is-val" id="is-1">820</div><div class="is-label">Meals funded from optional add-ons</div></div>
+        <div class="is-card"><div class="is-val">9</div><div class="is-label">of 14 guests chose Give Forward</div></div>
+        <div class="is-card"><div class="is-val">₹911</div><div class="is-label">Avg Give Forward add-on per guest</div></div>
+      </div>
+    </div>
+    <div class="demo-right reveal rd2">
+      <div class="demo-label">Give Forward · Blessing Card — live demo</div>
+      <div class="blessing-card">
+        <div class="bc-ring">🌱</div>
+        <div class="bc-title">Gift Sent!</div>
+        <div class="bc-sub" id="bc-sub">From Arjun (Best Man)</div>
+        <div class="bc-amount">₹<span id="bc-amount">5,000</span></div>
+        <div class="bc-split-row">
+          <div class="bc-si"><div class="bc-si-icon">💛</div><div class="bc-si-label">Gift Card</div><div class="bc-si-val">₹<span id="bc-reg">5,000</span></div></div>
+          <div class="bc-si"><div class="bc-si-icon" id="bc-icon">🍱</div><div class="bc-si-label">Give Forward</div><div class="bc-si-val">+₹<span id="bc-gf">750</span></div></div>
+        </div>
+        <div class="bc-impact" id="bc-impact">Your gift feeds <strong>~75 families</strong> alongside celebrating Wall-E & EVA's wedding.</div>
+        <div class="bc-share"><button class="bc-btn wa">💬 Share</button><button class="bc-btn done">Done</button></div>
+      </div>
+      <div class="demo-controls">
+        <div class="demo-chip on" onclick="setDemo(0,this)">🍱 Arjun · +₹750</div>
+        <div class="demo-chip" onclick="setDemo(1,this)">📚 Priya · +₹1.5K</div>
+        <div class="demo-chip" onclick="setDemo(2,this)">🏥 Meera · +₹2K</div>
+        <div class="demo-chip" onclick="setDemo(3,this)">🍱 Cousins · +₹1K</div>
+      </div>
+      <div class="demo-playbar">
+        <div class="demo-play-label">Auto-cycling</div>
+        <div class="demo-progress-track"><div class="demo-progress-fill" id="demo-prog"></div></div>
+        <div class="demo-play-label" id="demo-timer">4s</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- GIFT CARDS -->
+<section id="giftcards">
+  <div class="reveal">
+    <div class="s-eyebrow">Gift Card Library</div>
+    <h2 class="s-title">50+ brands.<br><em>Every occasion covered.</em></h2>
+    <p class="s-sub">India's most comprehensive wedding gift card library — gold, diamonds, travel, dining, wellness, experiences and more.</p>
+  </div>
+  <div class="gc-marquee-wrap reveal">
+    <div class="gc-row" id="gcr1"></div>
+    <div class="gc-row" id="gcr2" style="animation-direction:reverse;animation-duration:42s;"></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- REGISTER ENTRY -->
+<div id="register-entry">
+  <div class="register-entry" id="register">
+    <div class="register-entry-inner reveal">
+      <div class="re-eyebrow">✦ Early Access</div>
+      <h2 class="re-title">Get <em>early access</em><br>to WeddingPay</h2>
+      <p class="re-sub">Join the waitlist and start your onboarding — be among the first couples to use WeddingPay Give Forward.</p>
+      <div class="re-form" id="re-form">
+        <div class="rf-row">
+          <div><label class="rf-label">Your Name</label><input class="rf-input" type="text" placeholder="e.g. Wall-E" id="rf-name" style="margin-bottom:0;"></div>
+          <div><label class="rf-label">Partner's Name</label><input class="rf-input" type="text" placeholder="e.g. EVA" id="rf-partner" style="margin-bottom:0;"></div>
+        </div>
+        <div style="height:12px;"></div>
+        <label class="rf-label">Email Address</label>
+        <input class="rf-input" type="email" placeholder="your@email.com" id="rf-email">
+        <label class="rf-label">Phone Number</label>
+        <input class="rf-input" type="tel" placeholder="+91 98765 43210" id="rf-phone">
+        <label class="rf-label">Wedding Date</label>
+        <input class="rf-input" type="date" id="rf-date">
+        <button class="rf-submit" onclick="startOnboarding()">✦ Begin Your Wedding Setup →</button>
+        <div class="rf-note">Takes 4 minutes · No payment required · Your dashboard is ready at the end</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div><div class="footer-brand">WeddingPay · Give Forward</div><div class="footer-sub">Gift cards powered by aggregator gateway · AI by Claude · India-first · 2026</div></div>
+  <div class="footer-right">Product concept · Leadership review</div>
+</footer>
+
+</div><!-- /marketing-site -->
+
+<!-- ══════════ ONBOARDING (LLM Chat) ══════════ -->
+<div class="onboarding-screen" id="onboarding-screen">
+  <div class="ob-bg-grid"></div>
+
+  <!-- Left panel - live preview -->
+  <div class="ob-left">
+    <div class="ob-logo">WeddingPay</div>
+    <div class="ob-logo-sub">Give Forward · Setup</div>
+
+    <div style="flex:1;display:flex;flex-direction:column;gap:3px;padding:10px 0;overflow-y:auto;" id="ob-tracker">
+      <div class="ob-track-item" id="trk-names"><div class="ob-track-dot pending"></div><div class="ob-track-info"><div class="ob-track-label">Your names</div><div class="ob-track-val" id="trk-names-val">Waiting…</div></div></div>
+      <div class="ob-track-conn"></div>
+      <div class="ob-track-item" id="trk-date"><div class="ob-track-dot pending"></div><div class="ob-track-info"><div class="ob-track-label">Wedding date</div><div class="ob-track-val" id="trk-date-val">Waiting…</div></div></div>
+      <div class="ob-track-conn"></div>
+      <div class="ob-track-item" id="trk-venue"><div class="ob-track-dot pending"></div><div class="ob-track-info"><div class="ob-track-label">Venue</div><div class="ob-track-val" id="trk-venue-val">Waiting…</div></div></div>
+      <div class="ob-track-conn"></div>
+      <div class="ob-track-item" id="trk-vibe"><div class="ob-track-dot pending"></div><div class="ob-track-info"><div class="ob-track-label">Wedding vibe</div><div class="ob-track-val" id="trk-vibe-val">Waiting…</div></div></div>
+      <div class="ob-track-conn"></div>
+      <div class="ob-track-item" id="trk-cats"><div class="ob-track-dot pending"></div><div class="ob-track-info"><div class="ob-track-label">Gift categories</div><div class="ob-track-val" id="trk-cats-val">Waiting…</div></div></div>
+      <div class="ob-track-conn"></div>
+      <div class="ob-track-item" id="trk-cause"><div class="ob-track-dot pending"></div><div class="ob-track-info"><div class="ob-track-label">Give Forward</div><div class="ob-track-val" id="trk-cause-val">Waiting…</div></div></div>
+    </div>
+
+    <div class="ob-couple-preview" id="ob-preview-card">
+      <div class="ocp-label">Your Registry</div>
+      <div class="ocp-names" id="ocp-names">Just getting started…</div>
+      <div class="ocp-detail" id="ocp-detail">Tell me about your wedding</div>
+      <div class="ocp-vibe" id="ocp-vibe" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- Right panel - chat -->
+  <div style="flex:1;display:flex;flex-direction:column;min-height:100vh;overflow:hidden;">
+
+    <!-- Header -->
+    <div style="padding:22px 32px 16px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+      <div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:22px;color:white;font-weight:300;">Set up your <em style="font-style:italic;color:var(--teal-light);">wedding</em></div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.3);margin-top:3px;">Powered by Claude · Takes about 3 minutes</div>
+      </div>
+      <button onclick="document.getElementById('onboarding-screen').classList.remove('active');document.getElementById('marketing-site').style.display='block';" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.4);padding:7px 14px;border-radius:7px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;">← Back</button>
+    </div>
+
+    <!-- Messages area -->
+    <div style="flex:1;overflow-y:auto;padding:24px 32px;display:flex;flex-direction:column;gap:16px;" id="ob-messages"></div>
+
+    <!-- Typing indicator -->
+    <div style="padding:0 32px 8px;display:none;" id="ob-typing">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#B8923E);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;">✦</div>
+        <div style="display:flex;gap:4px;padding:10px 14px;background:rgba(255,255,255,0.05);border-radius:16px;border-top-left-radius:4px;">
+          <div class="typing-dot"></div>
+          <div class="typing-dot" style="animation-delay:0.15s;"></div>
+          <div class="typing-dot" style="animation-delay:0.3s;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Launch banner -->
+    <div id="ob-launch-banner" style="margin:0 32px 12px;background:linear-gradient(135deg,#1a3d30,#0e2a22);border-radius:12px;padding:16px 20px;display:none;align-items:center;gap:14px;border:1px solid rgba(126,203,184,0.25);">
+      <div style="font-size:22px;">&#127800;</div>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:500;color:white;margin-bottom:2px;">Your wedding is configured!</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.5);" id="ob-launch-summary">Ready to launch your personalised dashboard.</div>
+      </div>
+      <button onclick="launchDashboard()" style="background:var(--gold);color:white;border:none;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;box-shadow:0 3px 14px rgba(201,168,76,0.35);">Launch →</button>
+    </div>
+
+    <!-- Input -->
+    <div style="padding:12px 32px 24px;flex-shrink:0;border-top:1px solid rgba(255,255,255,0.06);">
+      <div style="display:flex;gap:10px;align-items:flex-end;">
+        <textarea id="ob-input" placeholder="Type your answer…" rows="1"
+          style="flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:12px 16px;font-size:14px;font-family:'DM Sans',sans-serif;color:white;resize:none;max-height:120px;line-height:1.5;transition:border-color 0.2s;outline:none;"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();obSendMessage();}"
+          oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px';"></textarea>
+        <button onclick="obSendMessage()" id="ob-send-btn"
+          style="width:44px;height:44px;border-radius:12px;background:var(--gold);border:none;color:white;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 3px 14px rgba(201,168,76,0.3);">↑</button>
+      </div>
+      <div style="font-size:10px;color:rgba(255,255,255,0.18);margin-top:8px;text-align:center;">Press Enter to send · Shift+Enter for new line</div>
+    </div>
+
+  </div>
+
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════
+// CAROUSEL
+// ══════════════════════════════════════
+let carouselIdx = 0;
+const CAROUSEL_DUR = 5000;
+let carouselTimer = null;
+let progressTimer = null;
+let progressElapsed = 0;
+
+function goToSlide(idx) {
+  const slides = document.querySelectorAll('.cs-slide');
+  const dots = document.querySelectorAll('.cdot');
+  slides[carouselIdx].classList.remove('active');
+  dots[carouselIdx].classList.remove('active');
+  carouselIdx = (idx + slides.length) % slides.length;
+  slides[carouselIdx].classList.add('active');
+  dots[carouselIdx].classList.add('active');
+  resetCarouselProgress();
+}
+
+function carouselNext() { goToSlide(carouselIdx + 1); }
+function carouselPrev() { goToSlide(carouselIdx - 1); }
+
+function resetCarouselProgress() {
+  clearInterval(carouselTimer);
+  clearInterval(progressTimer);
+  progressElapsed = 0;
+  const fill = document.getElementById('carousel-progress-fill');
+  if (fill) fill.style.width = '0%';
+  progressTimer = setInterval(() => {
+    progressElapsed += 80;
+    const pct = Math.min((progressElapsed / CAROUSEL_DUR) * 100, 100);
+    if (fill) fill.style.width = pct + '%';
+    if (progressElapsed >= CAROUSEL_DUR) {
+      clearInterval(progressTimer);
+      carouselNext();
+    }
+  }, 80);
+}
+
+// Start carousel on load
+window.addEventListener('load', () => {
+  resetCarouselProgress();
+  // Pause on hover
+  const carousel = document.getElementById('carousel');
+  if (carousel) {
+    carousel.addEventListener('mouseenter', () => {
+      clearInterval(progressTimer);
+    });
+    carousel.addEventListener('mouseleave', () => {
+      resetCarouselProgress();
+    });
+  }
+  // Touch/swipe support
+  let touchStartX = 0;
+  document.querySelector('.carousel')?.addEventListener('touchstart', e => {
+    touchStartX = e.touches[0].clientX;
+  }, { passive: true });
+  document.querySelector('.carousel')?.addEventListener('touchend', e => {
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) diff > 0 ? carouselNext() : carouselPrev();
+  }, { passive: true });
+});
+
+// ── CURSOR ──
+const cur=document.getElementById('cur'),ring=document.getElementById('cur-ring');
+document.addEventListener('mousemove',e=>{
+  cur.style.left=e.clientX+'px';cur.style.top=e.clientY+'px';
+  setTimeout(()=>{ring.style.left=e.clientX+'px';ring.style.top=e.clientY+'px';},60);
+});
+document.querySelectorAll('button,a,.f-tab,.th-tab,.demo-chip,.cause-item,.gc-card,.ob-choice,.cause-card-ob,.pref-chip,.obs-item,.nfl-item').forEach(el=>{
+  el.addEventListener('mouseenter',()=>ring.style.transform='translate(-50%,-50%) scale(1.8)');
+  el.addEventListener('mouseleave',()=>ring.style.transform='translate(-50%,-50%) scale(1)');
+});
+
+// ── NAV ──
+window.addEventListener('scroll',()=>document.getElementById('nav').classList.toggle('scrolled',scrollY>60));
+
+// ── HERO WORD CYCLE ──
+const heroWords=['celebrates','gives back','remembers'];
+let wordIdx=0;
+setInterval(()=>{
+  wordIdx=(wordIdx+1)%heroWords.length;
+  const el=document.getElementById('hero-word');
+  el.style.opacity='0';el.style.transform='translateY(-10px)';
+  setTimeout(()=>{el.textContent=heroWords[wordIdx];el.style.opacity='1';el.style.transform='translateY(0)';},300);
+},3000);
+document.getElementById('hero-word').style.transition='all 0.3s ease';
+
+// ── SCROLL REVEAL ──
+const obs=new IntersectionObserver(es=>es.forEach(e=>{
+  if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target);}
+}),{threshold:0.1});
+document.querySelectorAll('.reveal,.reveal-left,.reveal-right,.reveal-scale').forEach(el=>obs.observe(el));
+
+// ── ANIMATED COUNTERS ──
+function animateCounter(el,target,suffix,duration=1800){
+  const start=performance.now();
+  const update=now=>{
+    const p=Math.min((now-start)/duration,1);
+    const ease=1-Math.pow(1-p,3);
+    const val=Math.floor(ease*target);
+    el.textContent=val.toLocaleString('en-IN')+(suffix||'');
+    if(p<1)requestAnimationFrame(update);
+    else el.textContent=target.toLocaleString('en-IN')+(suffix||'');
+  };
+  requestAnimationFrame(update);
+}
+
+// Trigger counters on scroll
+const counterObs=new IntersectionObserver(es=>es.forEach(e=>{
+  if(e.isIntersecting){
+    e.target.querySelectorAll('[data-target]').forEach(el=>{
+      animateCounter(el,parseInt(el.dataset.target),el.dataset.suffix||'');
+    });
+    counterObs.unobserve(e.target);
+  }
+}),{threshold:0.3});
+document.querySelectorAll('.hero-stats,.stats-bar').forEach(el=>counterObs.observe(el));
+
+// ── MODULE TABS ──
+function switchModule(idx,tabEl){
+  document.querySelectorAll('.f-tab').forEach(t=>t.classList.remove('active'));
+  tabEl.classList.add('active');
+  document.querySelectorAll('.module-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('mp-'+idx).classList.add('active');
+}
+
+// ── THEME SWITCHER ──
+function switchTheme(id,tabEl){
+  document.querySelectorAll('.th-tab').forEach(t=>{t.classList.remove('active');t.style.background='';});
+  tabEl.classList.add('active');
+  const bgs={traditional:'rgba(139,58,10,0.1)',luxury:'rgba(201,168,76,0.06)',boho:'rgba(139,154,42,0.1)',destination:'rgba(46,107,94,0.1)'};
+  tabEl.style.background=bgs[id]||'';
+  document.querySelectorAll('.theme-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('theme-'+id).classList.add('active');
+}
+
+// ── GIFT CARDS ──
+const brands=[
+  {logo:'📦',name:'Amazon Pay',cat:'Home'},{logo:'🛒',name:'Flipkart',cat:'Home'},{logo:'🛋️',name:'Pepperfry',cat:'Home'},{logo:'🏪',name:'IKEA',cat:'Home'},{logo:'🧵',name:'FabIndia',cat:'Home'},{logo:'🏠',name:'HomeTown',cat:'Home'},
+  {logo:'🪙',name:'SafeGold',cat:'Gold'},{logo:'✨',name:'Tanishq',cat:'Gold'},{logo:'🏅',name:'MMTC-PAMP',cat:'Gold'},{logo:'🌟',name:'Malabar Gold',cat:'Gold'},{logo:'💫',name:'Joyalukkas',cat:'Gold'},{logo:'⭐',name:'PC Jeweller',cat:'Gold'},
+  {logo:'💎',name:'CaratLane',cat:'Jewellery'},{logo:'💍',name:'BlueStone',cat:'Jewellery'},{logo:'🔮',name:'Kalyan Jewellers',cat:'Jewellery'},{logo:'💠',name:'Senco Gold',cat:'Jewellery'},
+  {logo:'✈️',name:'MakeMyTrip',cat:'Travel'},{logo:'🏡',name:'Airbnb',cat:'Travel'},{logo:'🗺️',name:'Yatra',cat:'Travel'},{logo:'🧳',name:'Cleartrip',cat:'Travel'},{logo:'🚂',name:'IRCTC',cat:'Travel'},{logo:'🚗',name:'Ola',cat:'Travel'},{logo:'🛺',name:'EaseMyTrip',cat:'Travel'},
+  {logo:'🍛',name:'Zomato',cat:'Food'},{logo:'🛵',name:'Swiggy',cat:'Food'},{logo:'🥂',name:'EazyDiner',cat:'Food'},{logo:'🍽️',name:'Dineout',cat:'Food'},{logo:'☕',name:'Starbucks',cat:'Food'},{logo:'🍕',name:'Pizza Hut',cat:'Food'},
+  {logo:'💄',name:'Nykaa',cat:'Wellness'},{logo:'🌿',name:'Forest Essentials',cat:'Wellness'},{logo:'🧖',name:'O2 Spa',cat:'Wellness'},{logo:'💆',name:'Enrich Salon',cat:'Wellness'},{logo:'🌸',name:'Kama Ayurveda',cat:'Wellness'},{logo:'🫧',name:'The Body Shop',cat:'Wellness'},
+  {logo:'🎭',name:'BookMyShow',cat:'Exp.'},{logo:'🧗',name:'Thrillophilia',cat:'Exp.'},{logo:'🎪',name:'LBB',cat:'Exp.'},{logo:'🏌️',name:'GolfLAN',cat:'Exp.'},
+  {logo:'👗',name:'Myntra',cat:'Fashion'},{logo:'👠',name:'Ajio',cat:'Fashion'},{logo:'🕶️',name:'Lenskart',cat:'Fashion'},{logo:'👟',name:'Puma',cat:'Fashion'},{logo:'👜',name:'Tata CLiQ',cat:'Fashion'},
+  {logo:'📱',name:'Croma',cat:'Elec.'},{logo:'💻',name:'Vijay Sales',cat:'Elec.'},{logo:'🎮',name:'Games The Shop',cat:'Elec.'},
+  {logo:'🎁',name:'BigBasket',cat:'Gifting'},{logo:'📚',name:'Crossword',cat:'Gifting'},{logo:'🧸',name:'Hamleys',cat:'Gifting'},
+];
+function buildGCRow(bs){return bs.map(b=>`<div class="gc-card"><span class="gc-logo">${b.logo}</span><div><div class="gc-name">${b.name}</div><div class="gc-cat">${b.cat}</div></div></div>`).join('')}
+const r1=brands.slice(0,Math.ceil(brands.length/2)),r2=brands.slice(Math.ceil(brands.length/2));
+document.getElementById('gcr1').innerHTML=buildGCRow(r1)+buildGCRow(r1);
+document.getElementById('gcr2').innerHTML=buildGCRow(r2)+buildGCRow(r2);
+
+// ── GIVE FORWARD DEMO ──
+const scenarios=[
+  {cause:'meals',icon:'🍱',guest:'Arjun (Best Man)',gcAmt:5000,gfAmt:750},
+  {cause:'books',icon:'📚',guest:'Priya Sharma',gcAmt:10000,gfAmt:1500},
+  {cause:'medical',icon:'🏥',guest:'Meera',gcAmt:8000,gfAmt:2000},
+  {cause:'meals',icon:'🍱',guest:'The Delhi Cousins',gcAmt:7500,gfAmt:1000},
+];
+const causeImpact={
+  meals:(a)=>`Your add-on feeds <strong>~${Math.floor(a/10)} families</strong> in need.`,
+  books:(a)=>`Your add-on funds <strong>~${Math.floor(a/100)} books</strong> for children.`,
+  medical:(a)=>`Your add-on covers <strong>~${Math.floor(a/1000)} medical consultation${Math.floor(a/1000)>1?'s':''}</strong>.`,
+};
+let demoIdx=0,progInterval=null;const DEMO_DUR=4000;
+function setDemo(idx,chipEl){
+  demoIdx=idx;
+  if(chipEl){document.querySelectorAll('.demo-chip').forEach(c=>c.classList.remove('on'));chipEl.classList.add('on');}
+  const s=scenarios[idx];
+  document.querySelectorAll('.cause-item').forEach(c=>{c.classList.remove('gf-active');if(c.dataset.cause===s.cause)c.classList.add('gf-active');});
+  const gp=Math.round(s.gfAmt/(s.gcAmt+s.gfAmt)*100);
+  const regPct=100-gp;
+  document.getElementById('sv-reg').style.width=regPct+'%';
+  document.getElementById('sv-reg').textContent='Gift Card ₹'+s.gcAmt.toLocaleString('en-IN');
+  document.getElementById('sv-gf').style.width=gp+'%';
+  document.getElementById('sv-gf').textContent='+₹'+s.gfAmt.toLocaleString('en-IN');
+  document.getElementById('sv-pct').textContent='Guest adds '+gp+'%';
+  document.getElementById('bc-amount').textContent=s.gcAmt.toLocaleString('en-IN');
+  document.getElementById('bc-sub').textContent='From '+s.guest;
+  document.getElementById('bc-reg').textContent=s.gcAmt.toLocaleString('en-IN');
+  document.getElementById('bc-gf').textContent=s.gfAmt.toLocaleString('en-IN');
+  document.getElementById('bc-icon').textContent=s.icon;
+  document.getElementById('bc-impact').innerHTML=causeImpact[s.cause](s.gfAmt);
+  restartProg();
+}
+function restartProg(){
+  clearInterval(progInterval);
+  const fill=document.getElementById('demo-prog'),timer=document.getElementById('demo-timer');
+  fill.style.width='0%';let elapsed=0;
+  progInterval=setInterval(()=>{
+    elapsed+=100;fill.style.width=(elapsed/DEMO_DUR*100)+'%';
+    timer.textContent=Math.ceil((DEMO_DUR-elapsed)/1000)+'s';
+    if(elapsed>=DEMO_DUR){clearInterval(progInterval);const next=(demoIdx+1)%scenarios.length;setDemo(next,document.querySelectorAll('.demo-chip')[next]);}
+  },100);
+}
+const gfObs=new IntersectionObserver(es=>{if(es[0].isIntersecting){setDemo(0,document.querySelectorAll('.demo-chip')[0]);gfObs.disconnect();}},{threshold:0.3});
+const gfSection=document.getElementById('giveforward');
+if(gfSection)gfObs.observe(gfSection);
+
+// ── FLOW STEPS ──
+const fobs=new IntersectionObserver(es=>es.forEach((e,i)=>{if(e.isIntersecting){setTimeout(()=>e.target.classList.add('vis'),i*120);fobs.unobserve(e.target);}}),{threshold:0.15});
+document.querySelectorAll('.flow-step').forEach(s=>fobs.observe(s));
+
+// ── NOTIFICATION PHONE ANIMATION ──
+function animateNotifs(){
+  const notifs=document.querySelectorAll('.np-notification');
+  notifs.forEach((n,i)=>{
+    n.style.opacity='0';n.style.transform='translateX(20px)';
+    setTimeout(()=>{n.style.transition='all 0.5s ease';n.style.opacity='1';n.style.transform='translateX(0)';},i*600+500);
+  });
+}
+const notifObs=new IntersectionObserver(es=>{if(es[0].isIntersecting){animateNotifs();notifObs.disconnect();}},{threshold:0.4});
+const notifSection=document.getElementById('notifications');
+if(notifSection)notifObs.observe(notifSection);
+
+// ── SCROLL TO REGISTER ──
+function scrollToRegister(){
+  document.getElementById('register').scrollIntoView({behavior:'smooth'});
+}
+
+// ── START ONBOARDING ──
+// ══════════════════════════════════════════════
+// LLM-POWERED ONBOARDING
+// ══════════════════════════════════════════════
+
+// ── State ──
+const weddingConfig = {
+  p1Name: '', p2Name: '', weddingDate: '', venue: '', city: '',
+  vibe: null, categories: [], cause: null, complete: false
+};
+let obMessages = []; // full conversation history for API
+
+// ── Vibe → UI theme map ──
+const vibeThemes = {
+  traditional: {
+    label: '🪔 Traditional', color: '#C9A84C',
+    palette: { primary: '#8B3A0A', accent: '#C9A84C', bg: '#1a0505' },
+  },
+  luxury: {
+    label: '✦ Luxury', color: '#C9A84C',
+    palette: { primary: '#1A1410', accent: '#C9A84C', bg: '#080808' },
+  },
+  boho: {
+    label: '🌿 Boho', color: '#c4d67a',
+    palette: { primary: '#2d3a1a', accent: '#8a9a4a', bg: '#1a1a0a' },
+  },
+  destination: {
+    label: '🌅 Destination', color: '#7ecbb8',
+    palette: { primary: '#0a1520', accent: '#2E6B5E', bg: '#0a1015' },
+  },
+};
+
+// ── System prompt ──
+const SYSTEM_PROMPT = `You are the WeddingPay setup assistant. Your job is to have a warm, natural conversation to configure a couple's wedding registry. You need to collect:
+
+1. Both partners' names
+2. Wedding date (day, month, year)
+3. Venue name and city
+4. Wedding vibe — exactly one of: traditional, luxury, boho, destination
+5. Gift categories — any combination of: home, gold, travel, entertainment, wellness, fashion
+6. Give Forward cause — one of: meals (Feed Families), books (Books & Education), medical (Medical Care), or skip
+
+Rules:
+- Be warm, conversational, and brief. One or two questions at a time maximum.
+- Ask questions naturally — don't present numbered lists or forms.
+- When you have collected a piece of information, acknowledge it warmly.
+- For vibe, describe the options conversationally if they need guidance: Traditional (ceremony-focused, rituals, gold), Luxury (grand palatial, high-end), Boho (intimate, garden, earthy), Destination (outdoor, travel-focused).
+- For categories, suggest relevant ones based on the vibe but let them choose.
+- After collecting all information, end your final message with a JSON block on its own line in this exact format:
+  CONFIG:{"p1":"NAME1","p2":"NAME2","date":"DD MONTH YYYY","venue":"VENUE","city":"CITY","vibe":"VIBE","categories":["cat1","cat2"],"cause":"CAUSE"}
+- Do not include CONFIG until you have ALL fields. Only output CONFIG once.
+- Keep the conversation under 8 exchanges total.
+- Start by warmly welcoming them and asking for their names.`;
+
+// ── Start onboarding ──
+function startOnboarding() {
+  const name = document.getElementById('rf-name').value.trim();
+  const email = document.getElementById('rf-email').value.trim();
+  if (!name || !email) { toast('Please enter your name and email to begin'); return; }
+
+  // Pre-fill first name
+  weddingConfig.p1Name = name.split(' ')[0];
+
+  // Switch screens
+  document.getElementById('marketing-site').style.display = 'none';
+  const screen = document.getElementById('onboarding-screen');
+  screen.classList.add('active');
+  window.scrollTo(0, 0);
+
+  // Start conversation
+  obMessages = [];
+  document.getElementById('ob-messages').innerHTML = '';
+  setTimeout(() => obCallLLM(), 400);
+}
+
+// ── Add message to UI ──
+function obAddMessage(role, text) {
+  const msgs = document.getElementById('ob-messages');
+  const div = document.createElement('div');
+  div.className = 'ob-msg ' + role;
+  div.innerHTML = `
+    <div class="ob-msg-av">${role === 'ai' ? '✦' : '👤'}</div>
+    <div class="ob-msg-bubble">${text.replace(/\n/g, '<br>')}</div>
+  `;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+// ── Call Claude API ──
+async function obCallLLM(userMessage) {
+  // Add user message to history if provided
+  if (userMessage) {
+    obMessages.push({ role: 'user', content: userMessage });
+    obAddMessage('user', userMessage);
+  }
+
+  // Show typing indicator
+  const typing = document.getElementById('ob-typing');
+  typing.style.display = 'block';
+  document.getElementById('ob-send-btn').disabled = true;
+
+  try {
+    const response = await fetch('/.netlify/functions/claude', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: SYSTEM_PROMPT,
+        messages: obMessages.length > 0 ? obMessages : [
+          { role: 'user', content: `Hi, I'd like to set up my wedding registry. My name is ${weddingConfig.p1Name}.` }
+        ]
+      })
+    });
+
+    const data = await response.json();
+    const aiText = data.content?.[0]?.text || 'Sorry, something went wrong. Please try again.';
+
+    // Add to history
+    obMessages.push({ role: 'assistant', content: aiText });
+
+    // Check for CONFIG in response
+    const configMatch = aiText.match(/CONFIG:(\{.*?\})/s);
+    let displayText = aiText.replace(/CONFIG:\{.*?\}/s, '').trim();
+
+    // Show AI message (without the CONFIG block)
+    typing.style.display = 'none';
+    obAddMessage('ai', displayText);
+
+    if (configMatch) {
+      try {
+        const cfg = JSON.parse(configMatch[1]);
+        applyConfig(cfg);
+      } catch(e) {
+        console.error('Config parse error:', e);
+      }
+    } else {
+      // Parse any partial data from the response to update tracker
+      parsePartialData(aiText);
+    }
+
+  } catch (err) {
+    typing.style.display = 'none';
+    obAddMessage('ai', 'I had trouble connecting. Please check your internet and try again, or type your answer and I\'ll continue.');
+    console.error('LLM error:', err);
+  }
+
+  document.getElementById('ob-send-btn').disabled = false;
+  document.getElementById('ob-input').focus();
+}
+
+// ── Send user message ──
+function obSendMessage() {
+  const input = document.getElementById('ob-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  input.style.height = 'auto';
+  obCallLLM(text);
+}
+
+// ── Parse partial data from AI responses to update tracker ──
+function parsePartialData(text) {
+  const lower = text.toLowerCase();
+
+  // Try to extract names if mentioned
+  const nameMatch = text.match(/\b([A-Z][a-z]+)\s+(?:and|&)\s+([A-Z][a-z]+)\b/);
+  if (nameMatch && !weddingConfig.p1Name) {
+    updateTracker('names', nameMatch[1] + ' & ' + nameMatch[2]);
+  }
+
+  // Vibe detection
+  if (lower.includes('traditional') && !weddingConfig.vibe) updateTracker('vibe', '🪔 Traditional (detected)');
+  else if (lower.includes('luxury') && !weddingConfig.vibe) updateTracker('vibe', '✦ Luxury (detected)');
+  else if (lower.includes('boho') && !weddingConfig.vibe) updateTracker('vibe', '🌿 Boho (detected)');
+  else if (lower.includes('destination') && !weddingConfig.vibe) updateTracker('vibe', '🌅 Destination (detected)');
+}
+
+// ── Apply full config when LLM is done ──
+function applyConfig(cfg) {
+  weddingConfig.p1Name = cfg.p1 || '';
+  weddingConfig.p2Name = cfg.p2 || '';
+  weddingConfig.weddingDate = cfg.date || '';
+  weddingConfig.venue = cfg.venue || '';
+  weddingConfig.city = cfg.city || '';
+  weddingConfig.vibe = cfg.vibe || 'traditional';
+  weddingConfig.categories = cfg.categories || [];
+  weddingConfig.cause = cfg.cause || null;
+  weddingConfig.complete = true;
+
+  // Update all trackers
+  const names = cfg.p1 + (cfg.p2 ? ' & ' + cfg.p2 : '');
+  updateTracker('names', names, true);
+  updateTracker('date', cfg.date, true);
+  updateTracker('venue', cfg.venue + (cfg.city ? ', ' + cfg.city : ''), true);
+
+  const vibeLabel = vibeThemes[cfg.vibe]?.label || cfg.vibe;
+  updateTracker('vibe', vibeLabel, true);
+  updateTracker('cats', cfg.categories.length + ' categories selected', true);
+
+  const causeLabels = { meals: '🍱 Feed Families', books: '📚 Books & Education', medical: '🏥 Medical Care' };
+  updateTracker('cause', cfg.cause ? causeLabels[cfg.cause] : 'Skipped', !!cfg.cause);
+
+  // Update preview card
+  document.getElementById('ocp-names').textContent = names;
+  document.getElementById('ocp-detail').textContent = cfg.date + (cfg.city ? ' · ' + cfg.city : '');
+  const vibeEl = document.getElementById('ocp-vibe');
+  vibeEl.textContent = vibeThemes[cfg.vibe]?.label || '';
+  vibeEl.style.display = 'inline-block';
+  vibeEl.style.color = vibeThemes[cfg.vibe]?.color || 'var(--gold)';
+
+  // Apply vibe theme to onboarding background
+  applyVibeTheme(cfg.vibe);
+
+  // Show launch banner
+  const banner = document.getElementById('ob-launch-banner');
+  banner.style.display = 'flex';
+  document.getElementById('ob-launch-summary').textContent =
+    names + ' · ' + cfg.date + ' · ' + (cfg.city || cfg.venue) + ' · ' + (vibeThemes[cfg.vibe]?.label || '');
+
+  // Disable input
+  document.getElementById('ob-input').disabled = true;
+  document.getElementById('ob-send-btn').disabled = true;
+  document.getElementById('ob-input').placeholder = 'All set! Click Launch to open your dashboard.';
+}
+
+// ── Update left panel tracker ──
+function updateTracker(field, value, done = false) {
+  const item = document.getElementById('trk-' + field);
+  const valEl = document.getElementById('trk-' + field + '-val');
+  const dot = item?.querySelector('.ob-track-dot');
+  if (!item || !valEl || !dot) return;
+  valEl.textContent = value;
+  if (done) {
+    item.classList.add('done');
+    dot.classList.remove('pending', 'active');
+    dot.classList.add('done');
+  } else {
+    dot.classList.add('active');
+  }
+}
+
+// ── Apply vibe theme to onboarding screen ──
+function applyVibeTheme(vibe) {
+  const theme = vibeThemes[vibe];
+  if (!theme) return;
+  const screen = document.getElementById('onboarding-screen');
+  const themes = {
+    traditional: 'linear-gradient(155deg,#1a0505 0%,#2d0a0a 35%,#1a0e08 70%,#2a1a08 100%)',
+    luxury: 'linear-gradient(155deg,#080808 0%,#121009 35%,#1a1208 70%,#1a1410 100%)',
+    boho: 'linear-gradient(155deg,#0a0e05 0%,#121a08 35%,#1a2210 70%,#141a08 100%)',
+    destination: 'linear-gradient(155deg,#050a10 0%,#081520 35%,#0d1f2a 70%,#0a1520 100%)',
+  };
+  screen.style.background = themes[vibe] || themes.luxury;
+}
+
+function launchDashboard() {
+  if (!weddingConfig.complete) {
+    toast('Please complete the conversation first');
+    return;
+  }
+  window.open('weddingpay_walle_eva.html#dashboard', '_blank');
+  toast('\U0001f338 Dashboard launching! Welcome to WeddingPay.');
+}
+
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3500);
+}
+</script>
+</body>
+</html>
